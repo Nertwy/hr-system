@@ -4,11 +4,9 @@ import {
   type NextAuthOptions,
   type DefaultSession,
 } from "next-auth";
-import DiscordProvider from "next-auth/providers/discord";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
-import { env } from "~/env.mjs";
 import { prisma } from "~/server/db";
-
+import CredentialsProvider from "next-auth/providers/credentials";
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
  * object and keep type safety.
@@ -37,19 +35,49 @@ declare module "next-auth" {
  */
 export const authOptions: NextAuthOptions = {
   callbacks: {
-    session: ({ session, user }) => ({
+    session: ({ session, token}) => ({
       ...session,
       user: {
         ...session.user,
-        id: user.id,
+        id: token.id,
       },
     }),
+    jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+      }
+      return token;
+    },
   },
   adapter: PrismaAdapter(prisma),
   providers: [
-    DiscordProvider({
-      clientId: env.DISCORD_CLIENT_ID,
-      clientSecret: env.DISCORD_CLIENT_SECRET,
+    CredentialsProvider({
+      name: "Credentials",
+      credentials: {
+        email: { label: "Email", type: "text", placeholder: "email" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(
+        credentials: Record<"email" | "password", string> | undefined
+      ) {
+        const { email, password } = credentials as {
+          email: string;
+          password: string;
+        };
+        const user = await prisma.user.findFirst({
+          where: {
+            email,
+            password
+          },
+        });
+        // If no error and we have user data, return it
+        if (!user) {
+          return null;
+        }
+        console.log(user);
+        // Return null if user data could not be retrieved
+        return user;
+      },
     }),
     /**
      * ...add more providers here.
@@ -61,6 +89,9 @@ export const authOptions: NextAuthOptions = {
      * @see https://next-auth.js.org/providers/github
      */
   ],
+  session: {
+    strategy: "jwt",
+  },
 };
 
 /**
@@ -74,3 +105,4 @@ export const getServerAuthSession = (ctx: {
 }) => {
   return getServerSession(ctx.req, ctx.res, authOptions);
 };
+
