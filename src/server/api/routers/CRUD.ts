@@ -1,4 +1,4 @@
-import {z } from "zod";
+import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { prisma } from "~/server/db";
 
@@ -38,6 +38,31 @@ export const CRUD = createTRPCRouter({
         candidates: true,
       },
     });
-    return vacancy
+    return vacancy;
   }),
+  changeVacancy: protectedProcedure
+    .input(
+      z.object({
+        id: z.number().positive(),
+        title: z.string(),
+        department: z.string(),
+        description: z.string(),
+        requirements: z.string(),
+        posting_date: z.date(),
+        closing_date: z.date(),
+        status: z.string(),
+      })
+    )
+    .mutation(async (opts) => {
+      const { input } = opts;
+      const vacancy = await prisma.vacancy.update({
+        where: {
+          id: input.id,
+        },
+        data: {
+          ...input,
+        },
+      });
+      return vacancy
+    }),
 });

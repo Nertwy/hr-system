@@ -1,4 +1,4 @@
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { type FunctionComponent } from "react";
 import DropDown from "./Dropdown";
 import { useRouter } from "next/router";
@@ -6,6 +6,7 @@ interface NavBarProps {
   backgroundColor?: string;
 }
 const NavBar: FunctionComponent<NavBarProps> = ({ backgroundColor }) => {
+  const { data, status, update } = useSession();
   const router = useRouter();
   return (
     <div className={`absolute top-0 m-0 w-full font-sans`}>
@@ -13,7 +14,10 @@ const NavBar: FunctionComponent<NavBarProps> = ({ backgroundColor }) => {
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-around py-4 ">
             <div className="self-center">
-              <a onClick={()=> void router.push("/")} className="cursor-pointer">
+              <a
+                onClick={() => void router.push("/")}
+                className="cursor-pointer"
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   className="h-10 w-10 text-red-600"
@@ -54,15 +58,19 @@ const NavBar: FunctionComponent<NavBarProps> = ({ backgroundColor }) => {
               </a>
             </div>
 
-            <div className="hidden sm:flex sm:items-center">
-              <a
-                onClick={() => void signOut()}
-                href="#"
-                className="rounded-full bg-white/5 px-10 py-3 font-semibold text-white no-underline transition hover:bg-white/10"
-              >
-                Sign out
-              </a>
-            </div>
+            {!data ? (
+              <></>
+            ) : (
+              <div className="hidden sm:flex sm:items-center">
+                <a
+                  onClick={() => void signOut()}
+                  href="#"
+                  className="rounded-full bg-white/5 px-10 py-3 font-semibold text-white no-underline transition hover:bg-white/10"
+                >
+                  Sign out
+                </a>
+              </div>
+            )}
 
             <div className="cursor-pointer sm:hidden">
               <svg
