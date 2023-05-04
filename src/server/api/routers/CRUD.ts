@@ -7,6 +7,10 @@ export const CRUD = createTRPCRouter({
     const vacancies = await prisma.vacancy.findMany();
     return vacancies;
   }),
+  getAllCandidates: protectedProcedure.query(async () => {
+    const candidates = await prisma.candidate.findMany();
+    return candidates;
+  }),
   createVacancy: protectedProcedure
     .input(
       z.object({
@@ -63,6 +67,43 @@ export const CRUD = createTRPCRouter({
           ...input,
         },
       });
-      return vacancy
+      return vacancy;
+    }),
+  deleteCandidate: protectedProcedure
+    .input(z.number())
+    .mutation(async (opts) => {
+      const { input } = opts;
+      const candidate = await prisma.candidate.delete({
+        where: {
+          id: input,
+        },
+      });
+      return candidate;
+    }),
+  changeCandidate: protectedProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        vacancyId: z.number().nullable(),
+        first_name: z.string(),
+        last_name: z.string(),
+        email: z.string(),
+        phone: z.string(),
+        application_date: z.date(),
+        status: z.string(),
+        comments: z.string().nullable(),
+      })
+    )
+    .mutation(async (opts) => {
+      const { input } = opts;
+      const candidate = await prisma.candidate.update({
+        data: {
+          ...input,
+        },
+        where: {
+          id: input.id,
+        },
+      });
+      return candidate
     }),
 });

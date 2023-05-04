@@ -59,29 +59,73 @@ model VerificationToken {
 }
 
 model Candidate {
-  id Int @id @default(autoincrement())
-  vacancyId Int? // Змінено на скалярне поле vacancyId
-  first_name String
-  last_name String
-  email String
-  phone String
+  id               Int      @id @default(autoincrement())
+  vacancyId        Int? // Змінено на скалярне поле vacancyId
+  first_name       String
+  last_name        String
+  email            String
+  phone            String
   application_date DateTime
-  status String
-  comments String?
+  status           String
+  comments         String?
 
   // Зв'язок багато-до-одного з моделлю Vacancy за допомогою відносного поля vacancyId
   vacancy Vacancy? @relation(fields: [vacancyId], references: [id])
+  Resume  Resume[]
 }
 
 // Модель для вакансій
 model Vacancy {
-  id Int @id @default(autoincrement())
-  title String
-  department String
-  description String
+  id           Int         @id @default(autoincrement())
+  title        String
+  department   String
+  description  String
   requirements String
   posting_date DateTime
   closing_date DateTime
-  status String
-  candidates Candidate[] // Зв'язок один-до-багатьох з моделлю Candidate
+  status       String
+  candidates   Candidate[] // Зв'язок один-до-багатьох з моделлю Candidate
+}
+
+
+model Employee {
+  id            Int        @id @default(autoincrement())
+  first_name    String
+  last_name     String
+  email         String
+  phone         String
+  hire_date     DateTime
+  salary        Float
+  job_title     String
+  department    Department @relation(fields: [department_id], references: [id])
+  department_id Int
+  reviews       Review[]   @relation("Employee")
+  reviewedBy    Review[]   @relation("Reviewer")
+}
+
+model Department {
+  id        Int        @id @default(autoincrement())
+  name      String
+  employees Employee[] // Зв'язок один-до-багатьох з моделлю Employee
+}
+
+model Resume {
+  id           Int       @id @default(autoincrement())
+  experience   String
+  education    String
+  skills       String
+  achievements String
+  candidate    Candidate @relation(fields: [candidate_id], references: [id])
+  candidate_id Int
+}
+
+model Review {
+  id           Int      @id @default(autoincrement())
+  employee     Employee @relation("Employee", fields: [employeeId], references: [id])
+  employeeId   Int
+  reviewer     Employee @relation("Reviewer", fields: [reviewerId], references: [id])
+  reviewerId   Int
+  reviewDate   DateTime
+  reviewRating Float
+  reviewNotes  String
 }

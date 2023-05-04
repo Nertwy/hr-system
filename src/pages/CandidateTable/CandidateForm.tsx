@@ -1,72 +1,63 @@
-import { Transition } from "@headlessui/react";
 import {
-  useState,
   type FC,
-  useEffect,
+  useState,
   Fragment,
   type HTMLInputTypeAttribute,
+  useEffect,
 } from "react";
-import { toast } from "react-toastify";
+import { api } from "~/utils/api";
+import { Transition } from "@headlessui/react";
 import DialogBox from "~/components/DialogBox";
 import { EditButton } from "~/components/SmallComponents";
 import Spinner from "~/components/Spinner";
-import { type Vacancy } from "~/interface";
-import { api } from "~/utils/api";
-
-const VacancyTable: FC = () => {
+import { type Candidate } from "@prisma/client";
+import { toast } from "react-toastify";
+const CandidateTable: FC = () => {
   const [deletedRow, setDeletedRow] = useState<number | null>(null);
-  const { data, isLoading, isFetched } = api.CRUD.getAllVacancies.useQuery();
-  const [vacancies, setVacancies] = useState<Vacancy[] | undefined>(data);
-  const deleteVacancy = api.CRUD.deleteVacancy.useMutation();
+  const { data, isLoading, isFetched } = api.CRUD.getAllCandidates.useQuery();
+  const [candidates, setCandidates] = useState<Candidate[] | undefined>(data);
   const [editIndex, setEditIndex] = useState(-1);
-  const changeVacancy = api.CRUD.changeVacancy.useMutation();
-  const [vacancyState, setVacancyState] = useState<Vacancy>({
+  const deleteCandidate = api.CRUD.deleteCandidate.useMutation();
+  const updateCandidate = api.CRUD.changeCandidate.useMutation();
+  const [candidateState, setCandidateState] = useState<Candidate>({
+    application_date: new Date(),
+    comments: "",
+    email: "",
+    first_name: "",
     id: -1,
-    candidates: [],
-    title: "",
-    closing_date: new Date(),
-    department: "",
-    description: "",
-    posting_date: new Date(),
+    last_name: "",
+    phone: "",
     status: "",
-    requirements: "",
+    vacancyId: null,
   });
   const handleInputChange = (name: string, value: string) => {
-    setVacancyState({
-      ...vacancyState,
+    setCandidateState({
+      ...candidateState,
       [name]: value,
     });
-    console.log(vacancyState);
+    console.log(candidateState);
   };
   useEffect(() => {
-    setVacancies(data);
+    setCandidates(data ?? []);
   }, [isFetched]);
   const handleSubmitChange = () => {
-    changeVacancy.mutate(
-      {
-        ...vacancyState,
-        id: editIndex,
-        closing_date: new Date(vacancyState.closing_date),
-        posting_date: new Date(vacancyState.posting_date),
+    updateCandidate.mutate(candidateState, {
+      onSuccess: () => {
+        toast.success("Запис змінено!");
+        setCandidates([
+          candidateState,
+          ...(candidates?.filter(
+            (candidate) => candidate.id !== candidateState.id
+          ) ?? []),
+        ]);
       },
-      {
-        onSuccess: () => {
-          toast.success("Запис змінено!");
-          setVacancies([
-            vacancyState,
-            ...(vacancies?.filter(
-              (vacancy) => vacancy.id !== vacancyState.id
-            ) ?? []),
-          ]);
-        },
-        onError() {
-          toast.error("Сталася помилка!");
-        },
-      }
-    );
+      onError() {
+        toast.error("Сталася помилка!");
+      },
+    });
   };
   const handleDeleteQuery = (vacancyId: number) => {
-    deleteVacancy.mutate(vacancyId, {
+    deleteCandidate.mutate(vacancyId, {
       onSuccess(data) {
         toast.success(`Запис з Id  ${data.id} видалено!`);
       },
@@ -76,10 +67,10 @@ const VacancyTable: FC = () => {
       },
     });
   };
-  // console.log(Object.keys(vacancyState));
+  // console.log(Object.keys(candidateState));
 
   if (isLoading) {
-    // setVacancies(null);
+    // setCandidates(null);
     return <Spinner />;
   }
   return (
@@ -91,19 +82,25 @@ const VacancyTable: FC = () => {
               ID
             </th>
             <th className="border border-blue-400 px-4 py-2" scope="col">
-              Title
+              Вакансія
             </th>
             <th className="border border-blue-400 px-4 py-2" scope="col">
-              Department
+              {"Ім'я"}
             </th>
             <th className="border border-blue-400 px-4 py-2" scope="col">
-              Posting Date
+              Фамілія
             </th>
             <th className="border border-blue-400 px-4 py-2" scope="col">
-              Closing Date
+              Пошта
             </th>
             <th className="border border-blue-400 px-4 py-2" scope="col">
-              Status
+              Телефон
+            </th>
+            <th className="border border-blue-400 px-4 py-2" scope="col">
+              Статус
+            </th>
+            <th className="border border-blue-400 px-4 py-2" scope="col">
+              Коментарі
             </th>
             <th className="border border-blue-400 px-4 py-2" scope="col">
               Редагувати
@@ -114,12 +111,12 @@ const VacancyTable: FC = () => {
           </tr>
         </thead>
         <tbody className="rounded-xl">
-          {vacancies?.map((vacancy) => (
-            <Fragment key={vacancy.id}>
+          {candidates?.map((candidate) => (
+            <Fragment key={candidate.id}>
               <Transition
                 as="tr"
                 className="rounded-xl text-white"
-                show={deletedRow !== vacancy.id}
+                show={deletedRow !== candidate.id}
                 enter="transition-opacity duration-75"
                 enterFrom="opacity-0"
                 enterTo="opacity-100"
@@ -127,66 +124,81 @@ const VacancyTable: FC = () => {
                 leaveFrom="opacity-100"
                 leaveTo="opacity-0"
                 onTransitionEnd={() =>
-                  setVacancies(vacancies?.filter((v) => v.id !== deletedRow))
+                  setCandidates(candidates?.filter((v) => v.id !== deletedRow))
                 }
               >
                 <td className="border border-blue-400 px-4 py-2">
-                  {vacancy.id}
+                  {candidate.id}
                 </td>
                 <td className="border border-blue-400 px-4 py-2">
                   <InputForTable
-                    defaultValue={vacancy.title}
-                    edit={editIndex === vacancy.id}
-                    title="title"
+                    type="number"
+                    defaultValue={candidate.vacancyId ?? -1}
+                    edit={editIndex === candidate.id}
+                    title="vacancyId"
                     onChange={handleInputChange}
                   />
                 </td>
                 <td className="border border-blue-400 px-4 py-2">
                   <InputForTable
-                    title="department"
-                    defaultValue={vacancy.department}
-                    edit={editIndex === vacancy.id}
+                    title="first_name"
+                    defaultValue={candidate.first_name}
+                    edit={editIndex === candidate.id}
                     onChange={handleInputChange}
                   />
                 </td>
                 <td className="border border-blue-400 px-4 py-2">
                   <InputForTable
-                    defaultValue={vacancy.posting_date
-                      .toISOString()
-                      .slice(0, 10)}
-                    type="date"
-                    edit={editIndex === vacancy.id}
-                    title="posting_date"
+                    defaultValue={candidate.last_name}
+                    edit={editIndex === candidate.id}
+                    title="last_name"
                     onChange={handleInputChange}
                   />
                 </td>
                 <td className="border border-blue-400 px-4 py-2">
                   <InputForTable
-                    defaultValue={vacancy.closing_date
-                      .toISOString()
-                      .slice(0, 10)}
-                    type="date"
-                    edit={editIndex === vacancy.id}
-                    title="closing_date"
+                    defaultValue={candidate.email}
+                    type="email"
+                    edit={editIndex === candidate.id}
+                    title="email"
+                    onChange={handleInputChange}
+                  />
+                </td>
+                {}
+                <td className="border border-blue-400 px-4 py-2">
+                  <InputForTable
+                    defaultValue={candidate.phone}
+                    type="tel"
+                    edit={editIndex === candidate.id}
+                    title="phone"
                     onChange={handleInputChange}
                   />
                 </td>
                 <td className="border border-blue-400 px-4 py-2">
                   <InputForTable
-                    defaultValue={vacancy.status}
-                    type="text"
-                    edit={editIndex === vacancy.id}
+                    defaultValue={candidate.status}
+                    edit={editIndex === candidate.id}
                     title="status"
                     onChange={handleInputChange}
                   />
                 </td>
                 <td className="border border-blue-400 px-4 py-2">
+                  <InputForTable
+                    defaultValue={candidate.comments ?? ""}
+                    type="text"
+                    edit={editIndex === candidate.id}
+                    title="comments"
+                    onChange={handleInputChange}
+                  />
+                </td>
+                {}
+                <td className="border border-blue-400 px-4 py-2">
                   <EditButton
                     setId={() => {
-                      setVacancyState({
-                        ...vacancy,
+                      setCandidateState({
+                        ...candidate,
                       });
-                      setEditIndex(vacancy.id ?? -1);
+                      setEditIndex(candidate.id ?? -1);
                     }}
                     handleCancel={() => setEditIndex(-1)}
                     handleSubmit={handleSubmitChange}
@@ -198,8 +210,8 @@ const VacancyTable: FC = () => {
                     text="Усі кандидати за цією вакансією будуть видалені!"
                     title="Видалити вакансію?"
                     onAccept={() => {
-                      setDeletedRow(vacancy.id ?? -1);
-                      handleDeleteQuery(vacancy.id ?? -1);
+                      setDeletedRow(candidate.id ?? -1);
+                      handleDeleteQuery(candidate.id ?? -1);
                     }}
                   />
                 </td>
@@ -212,13 +224,13 @@ const VacancyTable: FC = () => {
   );
 };
 type InputForTableProps = {
-  defaultValue: string;
+  defaultValue: string | number;
   type?: HTMLInputTypeAttribute;
   edit?: boolean;
   title?: string;
   onChange?: (title: string, eventValue: string) => void;
 };
-export const InputForTable: FC<InputForTableProps> = ({
+const InputForTable: FC<InputForTableProps> = ({
   defaultValue,
   type = "text",
   edit = false,
@@ -243,4 +255,4 @@ export const InputForTable: FC<InputForTableProps> = ({
   );
 };
 
-export default VacancyTable;
+export default CandidateTable;

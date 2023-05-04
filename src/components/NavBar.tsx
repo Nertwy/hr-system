@@ -30,13 +30,22 @@ const NavBar: FunctionComponent<NavBarProps> = ({ backgroundColor }) => {
                 </svg>
               </a>
             </div>
-            <DropDown />
+            <DropDown
+              title="Створити запис"
+              items={["Вакансії", "Кандидати"]}
+              links={["VacancyPage","CandidatePage"]}
+            />
+            <DropDown
+              title="Переглянути записи"
+              items={["Вакансії", "Кандидати"]}
+              links={["VacancyTable","CandidateTable"]}
+            />
             <div className="flex space-x-4">
               <a
                 href="#"
                 className="ml-20 text-sm font-semibold text-white hover:text-red-600"
               >
-                Products
+                Про автора
               </a>
               <a
                 href="#"
@@ -92,3 +101,4 @@ const NavBar: FunctionComponent<NavBarProps> = ({ backgroundColor }) => {
 };
 
 export default NavBar;
+
