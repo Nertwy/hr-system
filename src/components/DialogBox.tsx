@@ -7,7 +7,7 @@ type DialogProps = {
   text: string;
   onAccept?: () => void;
 };
-const DialogBox: FC<DialogProps> = ({ buttonName, text, title, onAccept }) => {
+export const DialogBox: FC<DialogProps> = ({ buttonName, text, title, onAccept }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const closeModal = () => {

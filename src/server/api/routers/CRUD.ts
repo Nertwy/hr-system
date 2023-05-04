@@ -48,8 +48,8 @@ export const CRUD = createTRPCRouter({
     .input(
       z.object({
         id: z.number().positive(),
-        title: z.string(),
-        department: z.string(),
+        title: z.string().optional(),
+        department: z.string().optional(),
         description: z.string(),
         requirements: z.string(),
         posting_date: z.date(),

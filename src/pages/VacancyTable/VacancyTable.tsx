@@ -10,53 +10,64 @@ import { toast } from "react-toastify";
 import DialogBox from "~/components/DialogBox";
 import { EditButton } from "~/components/SmallComponents";
 import Spinner from "~/components/Spinner";
-import { type Vacancy } from "~/interface";
 import { api } from "~/utils/api";
-
+import { type Vacancy } from "@prisma/client";
 const VacancyTable: FC = () => {
+  const [editIndex, setEditIndex] = useState(-1);
   const [deletedRow, setDeletedRow] = useState<number | null>(null);
   const { data, isLoading, isFetched } = api.CRUD.getAllVacancies.useQuery();
-  const [vacancies, setVacancies] = useState<Vacancy[] | undefined>(data);
+  const [vacancies, setVacancies] = useState<Vacancy[]>(data ?? []);
   const deleteVacancy = api.CRUD.deleteVacancy.useMutation();
-  const [editIndex, setEditIndex] = useState(-1);
   const changeVacancy = api.CRUD.changeVacancy.useMutation();
-  const [vacancyState, setVacancyState] = useState<Vacancy>({
-    id: -1,
-    candidates: [],
-    title: "",
-    closing_date: new Date(),
-    department: "",
-    description: "",
-    posting_date: new Date(),
-    status: "",
-    requirements: "",
-  });
+
   const handleInputChange = (name: string, value: string) => {
-    setVacancyState({
-      ...vacancyState,
-      [name]: value,
+    setVacancies((prevState: Vacancy[]) => {
+      const updatedVacancies: Vacancy[] = prevState?.map((vacancy) => {
+        if (editIndex === vacancy.id) {
+          return {
+            ...vacancy,
+            [name]: value,
+          };
+        }
+        return vacancy;
+      });
+      return updatedVacancies;
     });
-    console.log(vacancyState);
   };
+
   useEffect(() => {
-    setVacancies(data);
+    setVacancies(data ?? []);
   }, [isFetched]);
   const handleSubmitChange = () => {
+    const vacancy: Vacancy = vacancies.find(
+      (elem) => elem.id === editIndex
+    ) ?? {
+      closing_date: new Date(),
+      department: "",
+      description: "",
+      id: -1,
+      posting_date: new Date(),
+      requirements: "",
+      status: "",
+      title: "",
+    };
     changeVacancy.mutate(
       {
-        ...vacancyState,
+        ...vacancy,
         id: editIndex,
-        closing_date: new Date(vacancyState.closing_date),
-        posting_date: new Date(vacancyState.posting_date),
+        status: vacancy?.status ?? "",
+        description: vacancy?.description ?? "",
+        requirements: vacancy?.requirements ?? "",
+        department: vacancy?.department ?? "",
+        closing_date: new Date(vacancy?.closing_date ?? ""),
+        posting_date: new Date(vacancy?.posting_date ?? ""),
       },
       {
         onSuccess: () => {
           toast.success("Запис змінено!");
           setVacancies([
-            vacancyState,
-            ...(vacancies?.filter(
-              (vacancy) => vacancy.id !== vacancyState.id
-            ) ?? []),
+            vacancy,
+            ...(vacancies?.filter((vacancy) => vacancy.id !== editIndex) ?? []),
           ]);
         },
         onError() {
@@ -76,9 +87,8 @@ const VacancyTable: FC = () => {
       },
     });
   };
-  // console.log(Object.keys(vacancyState));
 
-  if (isLoading) {
+  if (!isFetched) {
     // setVacancies(null);
     return <Spinner />;
   }
@@ -151,9 +161,11 @@ const VacancyTable: FC = () => {
                 </td>
                 <td className="border border-blue-400 px-4 py-2">
                   <InputForTable
-                    defaultValue={vacancy.posting_date
-                      .toISOString()
-                      .slice(0, 10)}
+                    defaultValue={
+                      vacancy.posting_date instanceof Date
+                        ? vacancy.posting_date.toISOString().slice(0, 10)
+                        : vacancy.posting_date
+                    }
                     type="date"
                     edit={editIndex === vacancy.id}
                     title="posting_date"
@@ -162,9 +174,11 @@ const VacancyTable: FC = () => {
                 </td>
                 <td className="border border-blue-400 px-4 py-2">
                   <InputForTable
-                    defaultValue={vacancy.closing_date
-                      .toISOString()
-                      .slice(0, 10)}
+                    defaultValue={
+                      vacancy.closing_date instanceof Date
+                        ? vacancy.closing_date.toISOString().slice(0, 10)
+                        : vacancy.closing_date
+                    }
                     type="date"
                     edit={editIndex === vacancy.id}
                     title="closing_date"
@@ -183,9 +197,6 @@ const VacancyTable: FC = () => {
                 <td className="border border-blue-400 px-4 py-2">
                   <EditButton
                     setId={() => {
-                      setVacancyState({
-                        ...vacancy,
-                      });
                       setEditIndex(vacancy.id ?? -1);
                     }}
                     handleCancel={() => setEditIndex(-1)}
@@ -235,7 +246,7 @@ export const InputForTable: FC<InputForTableProps> = ({
           defaultValue={defaultValue}
           type={type}
           onChange={(event) => {
-            onChange?.(title ?? "", event.currentTarget.value);
+            onChange?.(title ?? "", event.currentTarget.value?.toString());
           }}
         />
       )}
