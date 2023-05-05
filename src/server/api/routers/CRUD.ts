@@ -1,8 +1,46 @@
 import { z } from "zod";
-import { createTRPCRouter, protectedProcedure } from "../trpc";
+import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
 import { prisma } from "~/server/db";
 
 export const CRUD = createTRPCRouter({
+  postEmployee: protectedProcedure
+    .input(
+      z.object({
+        id: z.number().optional(),
+        first_name: z.string(),
+        last_name: z.string(),
+        email: z.string().email(),
+        phone: z.string(),
+        hire_date: z.date(),
+        salary: z.number(),
+        job_title: z.string(),
+        department_id: z.number(),
+      })
+    )
+    .mutation(async (opts) => {
+      const { input } = opts;
+      const employee = await prisma.employee.create({
+        data: {
+          ...input
+        },
+      });
+      return employee;
+    }),
+  getAllDepartment: publicProcedure.query(async () => {
+    const department = await prisma.department.findMany();
+    return department;
+  }),
+  postDepartment: protectedProcedure
+    .input(z.string())
+    .mutation(async (opts) => {
+      const { input } = opts;
+      const department = await prisma.department.create({
+        data: {
+          name: input,
+        },
+      });
+      return department;
+    }),
   getAllVacancies: protectedProcedure.query(async () => {
     const vacancies = await prisma.vacancy.findMany();
     return vacancies;
@@ -104,6 +142,6 @@ export const CRUD = createTRPCRouter({
           id: input.id,
         },
       });
-      return candidate
+      return candidate;
     }),
 });

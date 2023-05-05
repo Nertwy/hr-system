@@ -191,7 +191,6 @@ const CandidateTable: FC = () => {
                     onChange={handleInputChange}
                   />
                 </td>
-                {}
                 <td className="border border-blue-400 px-4 py-2">
                   <EditButton
                     setId={() => {

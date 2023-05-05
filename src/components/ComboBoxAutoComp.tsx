@@ -62,9 +62,9 @@ const ComboBoxAuto: FC<ComboBoxAutoType> = ({ callback, data }) => {
                   <Combobox.Option
                     key={vacancy.id}
                     className={({ active }) =>
-                      `relative cursor-default select-none py-2 pl-10 pr-4 ${
-                        active ? "bg-red-600 text-white" : "text-gray-900"
-                      }`
+                    `relative cursor-default select-none py-2 pl-10 pr-4 ${
+                      active ? "bg-red-600 text-white" : "text-gray-900"
+                    }`
                     }
                     value={vacancy}
                   >
