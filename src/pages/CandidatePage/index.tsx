@@ -3,6 +3,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import AddVacancyForm from "./AddCandidateForm";
 import NavBar from "~/components/NavBar";
+import { BackGround } from "~/components/SmallComponents";
 const VacancyPage: NextPage = () => {
   const router = useRouter();
   const { data, status } = useSession();
@@ -13,10 +14,10 @@ const VacancyPage: NextPage = () => {
 
   return (
     <>
-      <div className="flex h-screen w-screen items-center justify-center bg-gradient-to-b from-[#6d0214] to-[#2c1519]">
-        <NavBar/>
+      <BackGround>
+        <NavBar />
         <AddVacancyForm />
-      </div>
+      </BackGround>
     </>
   );
 };

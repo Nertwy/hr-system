@@ -10,7 +10,7 @@ type DropDownProps = {
 const DropDown: FC<DropDownProps> = ({ title, items, links }) => {
   const router = useRouter();
   return (
-    <Menu as="div" className={"relative flex flex-col"}>
+    <Menu as="div" className={"relative z-10 flex flex-col"}>
       <Menu.Button
         className={`
           inline-flex w-full justify-center rounded-md bg-black bg-opacity-20 px-4 py-2 text-sm font-medium text-white 
@@ -37,8 +37,8 @@ const DropDown: FC<DropDownProps> = ({ title, items, links }) => {
               {({ active }) => (
                 <a
                   className={`${
-                    active ? "bg-transparent text-red-600" : "text-white"
-                  } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
+                    active ? "bg-slate-600 bg-opacity-30 text-red-600" : "text-white"
+                  }  flex w-full items-center rounded-md px-2 py-2 text-sm mb-4`}
                   onClick={() => void router.push(`/${links[index] ?? ""}`)}
                 >
                   {name}
@@ -46,19 +46,6 @@ const DropDown: FC<DropDownProps> = ({ title, items, links }) => {
               )}
             </Menu.Item>
           ))}
-          {/* <Menu.Item as={"div"} className={"sticky"}></Menu.Item>
-          <Menu.Item>
-            {({ active }) => (
-              <a
-                className={`${
-                  active ? "bg-transparent text-red-600" : "text-white"
-                } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
-                onClick={() => void router.push("/CandidatePage")}
-              >
-                Кандидати
-              </a>
-            )}
-          </Menu.Item> */}
         </Menu.Items>
       </Transition>
     </Menu>

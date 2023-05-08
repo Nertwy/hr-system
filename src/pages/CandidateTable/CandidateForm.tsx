@@ -67,10 +67,8 @@ const CandidateTable: FC = () => {
       },
     });
   };
-  // console.log(Object.keys(candidateState));
 
   if (isLoading) {
-    // setCandidates(null);
     return <Spinner />;
   }
   return (
@@ -164,7 +162,6 @@ const CandidateTable: FC = () => {
                     onChange={handleInputChange}
                   />
                 </td>
-                {}
                 <td className="border border-blue-400 px-4 py-2">
                   <InputForTable
                     defaultValue={candidate.phone}

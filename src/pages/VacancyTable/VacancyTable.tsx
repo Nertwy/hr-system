@@ -8,7 +8,7 @@ import {
 } from "react";
 import { toast } from "react-toastify";
 import DialogBox from "~/components/DialogBox";
-import { EditButton } from "~/components/SmallComponents";
+import { CustomTr, EditButton, SortState } from "~/components/SmallComponents";
 import Spinner from "~/components/Spinner";
 import { api } from "~/utils/api";
 import { type Vacancy } from "@prisma/client";
@@ -87,41 +87,56 @@ const VacancyTable: FC = () => {
       },
     });
   };
-
+  const columnNames: { name: keyof Vacancy; value: string }[] = [
+    { name: "id", value: "ID" },
+    { name: "title", value: "заголовок" },
+    { name: "department", value: "департамент" },
+    { name: "posting_date", value: "Дата створення" },
+    { name: "closing_date", value: "Дата закриття" },
+    { name: "status", value: "Статус" },
+  ];
   if (!isFetched) {
     // setVacancies(null);
     return <Spinner />;
   }
+  type VacancyKey = keyof Vacancy;
+  const handleSort = (key: VacancyKey, isAscending: SortState) => {
+    const sortedArr = sortFunction(key, isAscending);
+    const a = sortedArr(vacancies);
+    setVacancies([...a]);
+  };
+  const sortFunction =
+    <T extends keyof Vacancy>(key: T, isAscending: SortState) =>
+    (array: Vacancy[]): Vacancy[] => {
+      return [...array].sort((a, b) => {
+        const valueA = a[key];
+        const valueB = b[key];
+
+        if (typeof valueA === "number" && typeof valueB === "number") {
+          return isAscending === "ascending"
+            ? valueA - valueB
+            : valueB - valueA;
+        }
+
+        if (typeof valueA === "string" && typeof valueB === "string") {
+          return isAscending === "ascending"
+            ? valueA.localeCompare(valueB)
+            : valueB.localeCompare(valueA);
+        }
+
+        if (valueA instanceof Date && valueB instanceof Date) {
+          const timeA = valueA.getTime();
+          const timeB = valueB.getTime();
+          return isAscending === "ascending" ? timeA - timeB : timeB - timeA;
+        }
+        return 0;
+      });
+    };
   return (
     <div className="m-auto mt-12 w-5/6 pt-28">
       <table className="w-full table-auto border-collapse">
         <thead>
-          <tr className="text-white">
-            <th className="border border-blue-400 px-4 py-2" scope="col">
-              ID
-            </th>
-            <th className="border border-blue-400 px-4 py-2" scope="col">
-              Title
-            </th>
-            <th className="border border-blue-400 px-4 py-2" scope="col">
-              Department
-            </th>
-            <th className="border border-blue-400 px-4 py-2" scope="col">
-              Posting Date
-            </th>
-            <th className="border border-blue-400 px-4 py-2" scope="col">
-              Closing Date
-            </th>
-            <th className="border border-blue-400 px-4 py-2" scope="col">
-              Status
-            </th>
-            <th className="border border-blue-400 px-4 py-2" scope="col">
-              Редагувати
-            </th>
-            <th className="border border-blue-400 px-4 py-2" scope="col">
-              Видалити запис
-            </th>
-          </tr>
+          <CustomTr columnNames={columnNames} onSort={handleSort}></CustomTr>
         </thead>
         <tbody className="rounded-xl">
           {vacancies?.map((vacancy) => (

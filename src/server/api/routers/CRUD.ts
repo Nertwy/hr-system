@@ -3,10 +3,50 @@ import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
 import { prisma } from "~/server/db";
 
 export const CRUD = createTRPCRouter({
+  changeEmployee: protectedProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        first_name: z.string(),
+        last_name: z.string(),
+        email: z.string().email(),
+        phone: z.string(),
+        hire_date: z.date(),
+        salary: z.number(),
+        job_title: z.string(),
+        department_id: z.number(),
+      })
+    )
+    .mutation(async (opts) => {
+      const { input } = opts;
+      const employee = await prisma.employee.update({
+        data: {
+          ...input,
+        },
+        where: {
+          id: input.id,
+        },
+      });
+      return employee;
+    }),
+  deleteEmployee: protectedProcedure
+    .input(z.number())
+    .mutation(async (opts) => {
+      const { input } = opts;
+      const employee = await prisma.employee.delete({
+        where: {
+          id: input,
+        },
+      });
+      return employee;
+    }),
+  getAllEmployees: publicProcedure.query(async () => {
+    const employees = await prisma.employee.findMany();
+    return employees;
+  }),
   postEmployee: protectedProcedure
     .input(
       z.object({
-        id: z.number().optional(),
         first_name: z.string(),
         last_name: z.string(),
         email: z.string().email(),
@@ -21,7 +61,7 @@ export const CRUD = createTRPCRouter({
       const { input } = opts;
       const employee = await prisma.employee.create({
         data: {
-          ...input
+          ...input,
         },
       });
       return employee;

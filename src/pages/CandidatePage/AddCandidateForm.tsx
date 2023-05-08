@@ -4,7 +4,7 @@ import ComboBoxAuto from "~/components/ComboBoxAutoComp";
 import Spinner from "~/components/Spinner";
 import { useOnChange } from "~/hooks/hooks";
 import { api } from "~/utils/api";
-import { Candidate } from "~/interface";
+import { type Candidate } from "~/interface";
 const AddCandidateForm: FC = ({}) => {
   const addCandidateMutation = api.example.candidateCreate.useMutation();
   const email = useOnChange("");
@@ -62,8 +62,8 @@ const AddCandidateForm: FC = ({}) => {
   };
 
   return (
-    <>
-      {/* <AddVacancyForm></AddVacancyForm> */}
+    <div className="flex flex-col items-center">
+      <h1 className=" text-white text-3xl opacity-70">Додати кандидата</h1>
 
       <form
         className="rounded-md bg-black bg-opacity-70 p-8"
@@ -178,7 +178,7 @@ const AddCandidateForm: FC = ({}) => {
           Створити запис
         </button>
       </form>
-    </>
+    </div>
   );
 };
 

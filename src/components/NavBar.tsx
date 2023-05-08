@@ -12,7 +12,7 @@ const NavBar: FunctionComponent<NavBarProps> = ({ backgroundColor }) => {
     <div className={`absolute top-0 m-0 w-full font-sans`}>
       <div className="top-0">
         <div className="container mx-auto px-4">
-          <div className="flex items-center justify-around py-4 ">
+          <div className="flex items-center justify-around ">
             <div className="self-center">
               <a
                 onClick={() => void router.push("/")}
@@ -32,13 +32,23 @@ const NavBar: FunctionComponent<NavBarProps> = ({ backgroundColor }) => {
             </div>
             <DropDown
               title="Створити запис"
-              items={["Вакансії", "Кандидати"]}
-              links={["VacancyPage","CandidatePage"]}
+              items={["Вакансії", "Кандидати", "Департамент", "Працівники"]}
+              links={[
+                "VacancyPage",
+                "CandidatePage",
+                "DepartmentPage",
+                "EmployeePage"
+              ]}
             />
             <DropDown
               title="Переглянути записи"
-              items={["Вакансії", "Кандидати"]}
-              links={["VacancyTable","CandidateTable"]}
+              items={["Вакансії", "Кандидати", "Департамент", "Працівники"]}
+              links={[
+                "VacancyTable",
+                "CandidateTable",
+                "DepartmentTable",
+                "EmployeeTable",
+              ]}
             />
             <div className="flex space-x-4">
               <a
@@ -101,4 +111,3 @@ const NavBar: FunctionComponent<NavBarProps> = ({ backgroundColor }) => {
 };
 
 export default NavBar;
-

@@ -10,6 +10,7 @@ import {
   CheckIcon,
   ChevronUpDownIcon,
 } from "@heroicons/react/20/solid";
+import { Employee } from "@prisma/client";
 type BackGroundprops = {
   children: JSX.Element[];
 };
@@ -134,7 +135,7 @@ export const DropBox = <
   }
 >({
   data,
-  callback
+  callback,
 }: DropBoxProps<T>): JSX.Element => {
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<T | null>(null);
@@ -155,16 +156,17 @@ export const DropBox = <
     <div className="group relative z-0 mb-6 w-full object-center">
       <div className="max-h-40 w-1/2">
         <Combobox
-        value={selected}
-        onChange={(e) => {
-          setSelected(e);
-          callback?.(e);
-        }}>
+          value={selected}
+          onChange={(e) => {
+            setSelected(e);
+            callback?.(e);
+          }}
+        >
           <div className="relative mt-1">
             <div className="relative w-full cursor-default overflow-hidden rounded-lg bg-white text-left shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-red-300 sm:text-sm">
               <Combobox.Input
                 onChange={(e) => setQuery(e.currentTarget.value)}
-                displayValue={(value:T) => value?.name}
+                displayValue={(value: T) => value?.name}
                 className="border-non e  w-full py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0"
               />
               <Combobox.Button className="absolute inset-y-0 right-0 flex items-center pr-2">
@@ -222,5 +224,57 @@ export const DropBox = <
         </Combobox>
       </div>
     </div>
+  );
+};
+export type SortState = "ascending" | "descending" | "none";
+
+type CustomTrProps<T> = {
+  columnNames: { name: keyof T; value: string }[];
+  onSort: (key: keyof T, isAscending: SortState) => void;
+};
+
+export const CustomTr = <T,>({ columnNames, onSort }: CustomTrProps<T>) => {
+  const [sortStates, setSortStates] = useState<Record<keyof T, SortState>>(
+    {} as Record<keyof T, SortState>
+  );
+
+  const handleSortClick = (columnName: keyof T) => {
+    setSortStates((prevState) => {
+      const currentSortState = prevState[columnName];
+      let newSortState: SortState = "ascending";
+      if (currentSortState === "ascending") {
+        newSortState = "descending";
+      } else if (currentSortState === "descending") {
+        newSortState = "none";
+      }
+
+      return {
+        ...prevState,
+        [columnName]: newSortState,
+      };
+    });
+  };
+
+  return (
+    <tr className="text-white">
+      {columnNames.map((value, index) => (
+        <td
+          className="border border-blue-400 px-4 py-2 cursor-pointer animate-pulse"
+          scope="col"
+          key={index}
+          onClick={() => {
+            handleSortClick(value.name);
+            onSort(value.name, sortStates[value.name] ?? "none");
+            console.log(value.name, sortStates[value.name]);
+          }}
+        >
+          {value.value}
+          {sortStates[value.name] === "ascending" && " ▲"}
+          {sortStates[value.name] === "descending" && " ▼"}
+        </td>
+      ))}
+      <td className="border border-blue-400 px-4 py-2" scope="col">Редагувати</td>
+      <td className="border border-blue-400 px-4 py-2" scope="col">Видалити запис</td>
+    </tr>
   );
 };
