@@ -1,25 +1,36 @@
 import { Transition } from "@headlessui/react";
-import {
-  useState,
-  type FC,
-  useEffect,
-  Fragment,
-  type HTMLInputTypeAttribute,
-} from "react";
+import { useState, type FC, useEffect, Fragment } from "react";
 import { toast } from "react-toastify";
 import DialogBox from "~/components/DialogBox";
-import { CustomTr, EditButton, SortState } from "~/components/SmallComponents";
+import {
+  CustomTr,
+  EditButton,
+  InputForTable,
+  SearchComponent,
+} from "~/components/SmallComponents";
 import Spinner from "~/components/Spinner";
 import { api } from "~/utils/api";
 import { type Vacancy } from "@prisma/client";
+import { createKeyCycler, handleSort } from "~/hooks/hooks";
+
+const cycleKey = createKeyCycler<Vacancy>({
+  closing_date: new Date(),
+  department: "",
+  description: "",
+  id: -1,
+  posting_date: new Date(),
+  requirements: "",
+  status: "",
+  title: "",
+});
 const VacancyTable: FC = () => {
+  const { data, isFetched, isSuccess } = api.CRUD.getAllVacancies.useQuery();
   const [editIndex, setEditIndex] = useState(-1);
   const [deletedRow, setDeletedRow] = useState<number | null>(null);
-  const { data, isLoading, isFetched } = api.CRUD.getAllVacancies.useQuery();
   const [vacancies, setVacancies] = useState<Vacancy[]>(data ?? []);
+  const [filteredArr, setFilteredArr] = useState<Vacancy[]>(vacancies ?? []);
   const deleteVacancy = api.CRUD.deleteVacancy.useMutation();
   const changeVacancy = api.CRUD.changeVacancy.useMutation();
-
   const handleInputChange = (name: string, value: string) => {
     setVacancies((prevState: Vacancy[]) => {
       const updatedVacancies: Vacancy[] = prevState?.map((vacancy) => {
@@ -36,8 +47,9 @@ const VacancyTable: FC = () => {
   };
 
   useEffect(() => {
+    setFilteredArr(data ?? []);
     setVacancies(data ?? []);
-  }, [isFetched]);
+  }, [isFetched, isSuccess]);
   const handleSubmitChange = () => {
     const vacancy: Vacancy = vacancies.find(
       (elem) => elem.id === editIndex
@@ -69,6 +81,11 @@ const VacancyTable: FC = () => {
             vacancy,
             ...(vacancies?.filter((vacancy) => vacancy.id !== editIndex) ?? []),
           ]);
+          setFilteredArr([
+            vacancy,
+            ...(vacancies?.filter((vacancy) => vacancy.id !== editIndex) ?? []),
+          ]);
+          // void refetch();
         },
         onError() {
           toast.error("Сталася помилка!");
@@ -96,50 +113,28 @@ const VacancyTable: FC = () => {
     { name: "status", value: "Статус" },
   ];
   if (!isFetched) {
-    // setVacancies(null);
     return <Spinner />;
   }
-  type VacancyKey = keyof Vacancy;
-  const handleSort = (key: VacancyKey, isAscending: SortState) => {
-    const sortedArr = sortFunction(key, isAscending);
-    const a = sortedArr(vacancies);
-    setVacancies([...a]);
-  };
-  const sortFunction =
-    <T extends keyof Vacancy>(key: T, isAscending: SortState) =>
-    (array: Vacancy[]): Vacancy[] => {
-      return [...array].sort((a, b) => {
-        const valueA = a[key];
-        const valueB = b[key];
 
-        if (typeof valueA === "number" && typeof valueB === "number") {
-          return isAscending === "ascending"
-            ? valueA - valueB
-            : valueB - valueA;
-        }
-
-        if (typeof valueA === "string" && typeof valueB === "string") {
-          return isAscending === "ascending"
-            ? valueA.localeCompare(valueB)
-            : valueB.localeCompare(valueA);
-        }
-
-        if (valueA instanceof Date && valueB instanceof Date) {
-          const timeA = valueA.getTime();
-          const timeB = valueB.getTime();
-          return isAscending === "ascending" ? timeA - timeB : timeB - timeA;
-        }
-        return 0;
-      });
-    };
   return (
     <div className="m-auto mt-12 w-5/6 pt-28">
+      <SearchComponent
+        cycleKey={cycleKey}
+        data={vacancies}
+        filteredData={filteredArr}
+        setFilterState={setFilteredArr}
+      />
       <table className="w-full table-auto border-collapse">
         <thead>
-          <CustomTr columnNames={columnNames} onSort={handleSort}></CustomTr>
+          <CustomTr
+            columnNames={columnNames}
+            onSort={(key, isAscending) =>
+              handleSort(key, isAscending, filteredArr, setFilteredArr)
+            }
+          />
         </thead>
         <tbody className="rounded-xl">
-          {vacancies?.map((vacancy) => (
+          {filteredArr?.map((vacancy) => (
             <Fragment key={vacancy.id}>
               <Transition
                 as="tr"
@@ -237,36 +232,4 @@ const VacancyTable: FC = () => {
     </div>
   );
 };
-type InputForTableProps = {
-  defaultValue: string;
-  type?: HTMLInputTypeAttribute;
-  edit?: boolean;
-  title?: string;
-  onChange?: (title: string, eventValue: string) => void;
-};
-export const InputForTable: FC<InputForTableProps> = ({
-  defaultValue,
-  type = "text",
-  edit = false,
-  onChange,
-  title,
-}) => {
-  return (
-    <>
-      {!edit ? (
-        <>{defaultValue}</>
-      ) : (
-        <input
-          className="peer block w-full appearance-none border-0 border-b-2 border-gray-100 bg-transparent  py-2.5 text-sm text-gray-900 focus:border-red-600 focus:outline-none focus:ring-0 dark:border-gray-600 dark:text-white dark:focus:border-red-500"
-          defaultValue={defaultValue}
-          type={type}
-          onChange={(event) => {
-            onChange?.(title ?? "", event.currentTarget.value?.toString());
-          }}
-        />
-      )}
-    </>
-  );
-};
-
 export default VacancyTable;

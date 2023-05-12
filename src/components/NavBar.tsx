@@ -1,13 +1,20 @@
 import { signOut, useSession } from "next-auth/react";
-import { type FunctionComponent } from "react";
+import { useRef, type FunctionComponent } from "react";
 import DropDown from "./Dropdown";
 import { useRouter } from "next/router";
+import DialogBox from "./DialogBox";
 interface NavBarProps {
   backgroundColor?: string;
 }
 const NavBar: FunctionComponent<NavBarProps> = ({ backgroundColor }) => {
-  const { data, status, update } = useSession();
+  const { data } = useSession();
   const router = useRouter();
+  const handleAboutAuthor = () => {
+    if (router.pathname === "/") {
+      const footer = document.getElementById("footer");
+      if (footer) footer.scrollIntoView({ behavior: "smooth" });
+    }
+  };
   return (
     <div className={`absolute top-0 m-0 w-full font-sans`}>
       <div className="top-0">
@@ -32,48 +39,49 @@ const NavBar: FunctionComponent<NavBarProps> = ({ backgroundColor }) => {
             </div>
             <DropDown
               title="Створити запис"
-              items={["Вакансії", "Кандидати", "Департамент", "Працівники"]}
+              items={[
+                "Вакансії",
+                "Кандидати",
+                "Департамент",
+                "Працівники",
+                "Резюме",
+                "Огляд",
+              ]}
               links={[
                 "VacancyPage",
                 "CandidatePage",
                 "DepartmentPage",
-                "EmployeePage"
+                "EmployeePage",
+                "ResumePage",
+                "ReviewPage",
               ]}
             />
             <DropDown
               title="Переглянути записи"
-              items={["Вакансії", "Кандидати", "Департамент", "Працівники"]}
+              items={[
+                "Вакансії",
+                "Кандидати",
+                "Департамент",
+                "Працівники",
+                "Резюме",
+                "Огляд",
+              ]}
               links={[
                 "VacancyTable",
                 "CandidateTable",
                 "DepartmentTable",
                 "EmployeeTable",
+                "ResumeTable",
+                "ReviewTable",
               ]}
             />
             <div className="flex space-x-4">
               <a
                 href="#"
                 className="ml-20 text-sm font-semibold text-white hover:text-red-600"
+                onClick={handleAboutAuthor}
               >
                 Про автора
-              </a>
-              <a
-                href="#"
-                className="text-sm font-semibold text-white hover:text-red-600"
-              >
-                Marketplace
-              </a>
-              <a
-                href="#"
-                className="text-sm font-semibold text-white hover:text-red-600"
-              >
-                Partners
-              </a>
-              <a
-                href="#"
-                className="text-sm font-semibold text-white hover:text-red-600"
-              >
-                Pricing
               </a>
             </div>
 

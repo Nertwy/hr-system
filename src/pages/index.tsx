@@ -1,6 +1,7 @@
 import { type NextPage } from "next";
 import { signIn, signOut, useSession } from "next-auth/react";
 import NavBar from "~/components/NavBar";
+import { BackGround } from "~/components/SmallComponents";
 
 import { api } from "~/utils/api";
 
@@ -8,9 +9,9 @@ const Home: NextPage = () => {
   const bgColor = "bg-gradient-to-b from-[#6d0214] to-[#2c1519]";
   return (
     <>
-      <div className="bg-gradient-to-b from-[#6d0214] to-[#2c1519]">
+      <BackGround>
         <NavBar backgroundColor={bgColor} />
-        <main className="flex min-h-screen flex-col items-center justify-center ">
+        <main className="flex min-h-screen flex-col items-center justify-center">
           <div className="flex flex-col items-center gap-2">
             <h1 className="text-5xl font-extrabold tracking-tight text-white sm:text-[5rem]">
               <span className="text-[hsl()]">HR </span>
@@ -19,7 +20,7 @@ const Home: NextPage = () => {
             <AuthShowcase />
           </div>
         </main>
-      </div>
+      </BackGround>
     </>
   );
 };
@@ -43,7 +44,7 @@ const AuthShowcase: React.FC = () => {
         className="rounded-full bg-white/10 px-10 py-3 font-semibold text-white no-underline transition hover:bg-white/20"
         onClick={sessionData ? () => void signOut() : () => void signIn()}
       >
-        {sessionData ? "Sign out" : "Sign in"}
+        {sessionData ? "Вийти" : "Увійти"}
       </button>
     </div>
   );

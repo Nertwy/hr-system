@@ -4,16 +4,29 @@ import {
   BackGround,
   CustomTr,
   EditButton,
-  SortState,
+  InputForTable,
+  SearchComponent,
+  type SortState,
 } from "~/components/SmallComponents";
 import Spinner from "~/components/Spinner";
 import { api } from "~/utils/api";
-import { InputForTable } from "../VacancyTable/VacancyTable";
+import { handleSort } from "~/hooks/hooks";
 import DialogBox from "~/components/DialogBox";
 import { useState, useEffect } from "react";
 import { type Employee } from "@prisma/client";
 import { toast } from "react-toastify";
-
+import { createKeyCycler } from "~/hooks/hooks";
+const cycleKey = createKeyCycler<Employee>({
+  id: -1,
+  email: "",
+  department_id: -1,
+  first_name: "",
+  hire_date: new Date(),
+  job_title: "",
+  last_name: "",
+  phone: "",
+  salary: 0,
+});
 const EmployeePage: NextPage = () => {
   const { data, isFetched, isError, refetch, isSuccess } =
     api.CRUD.getAllEmployees.useQuery();
@@ -32,6 +45,7 @@ const EmployeePage: NextPage = () => {
   const updateEmployee = api.CRUD.changeEmployee.useMutation();
   const deleteEmployee = api.CRUD.deleteEmployee.useMutation();
   const [employees, setEmployees] = useState<Employee[]>(data ?? []);
+  const [filter, setFilter] = useState<Employee[]>([]);
   const columnNames: { name: keyof Employee; value: string }[] = [
     { name: "id", value: "ID" },
     { name: "first_name", value: "Ім'я" },
@@ -70,44 +84,17 @@ const EmployeePage: NextPage = () => {
     // console.log(employer);
   };
   useEffect(() => {
+    setFilter(data ?? []);
     setEmployees(data ?? []);
-  }, [isSuccess,data]);
+  }, [isSuccess, data]);
   if (isError) {
     return <div className="text-white">Error accured!</div>;
   }
-  type EmloyeeKey = keyof Employee;
-  const handleSort = (key: EmloyeeKey, isAscending: SortState) => {
-    const sortedArr = sortFunction(key, isAscending);
-    const a = sortedArr(employees);
-    setEmployees([...a]);
-  };
-  const sortFunction =
-    <T extends keyof Employee>(key: T, isAscending: SortState) =>
-    (array: Employee[]): Employee[] => {
-      return [...array].sort((a, b) => {
-        const valueA = a[key];
-        const valueB = b[key];
-
-        if (typeof valueA === "number" && typeof valueB === "number") {
-          return isAscending === "ascending"
-            ? valueA - valueB
-            : valueB - valueA;
-        }
-
-        if (typeof valueA === "string" && typeof valueB === "string") {
-          return isAscending === "ascending"
-            ? valueA.localeCompare(valueB)
-            : valueB.localeCompare(valueA);
-        }
-
-        return 0;
-      });
-    };
   function handleDeleteEmployee(id: number) {
     deleteEmployee.mutate(id, {
       onSuccess() {
         toast.success(`Запис з Id  ${id} видалено!`);
-        void refetch()
+        void refetch();
       },
       onError(error) {
         toast.error("Запис не видалено!");
@@ -124,15 +111,23 @@ const EmployeePage: NextPage = () => {
           <Spinner></Spinner>
         ) : (
           <div className="m-auto mt-12 w-5/6 pt-28">
+            <SearchComponent
+              data={employees}
+              filteredData={filter}
+              setFilterState={setFilter}
+              cycleKey={cycleKey}
+            />
             <table className="w-full table-auto border-collapse">
               <thead>
                 <CustomTr
                   columnNames={columnNames}
-                  onSort={handleSort}
+                  onSort={(key, isAscending) =>
+                    handleSort(key, isAscending, filter, setFilter)
+                  }
                 ></CustomTr>
               </thead>
               <tbody className="">
-                {employees?.map((value, index) => (
+                {filter?.map((value) => (
                   <tr key={value.id} className="text-white">
                     <td
                       key={value.id}

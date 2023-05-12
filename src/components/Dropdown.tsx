@@ -33,7 +33,7 @@ const DropDown: FC<DropDownProps> = ({ title, items, links }) => {
       >
         <Menu.Items className="absolute mt-8 flex flex-col bg-transparent pb-8">
           {items.map((name, index) => (
-            <Menu.Item as={"div"} className={"sticky"} key={index}>
+            <Menu.Item as={"div"} className={"sticky bg-black bg-opacity-70 w-full"} key={index}>
               {({ active }) => (
                 <a
                   className={`${

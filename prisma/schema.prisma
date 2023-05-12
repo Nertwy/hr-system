@@ -97,7 +97,7 @@ model Employee {
   hire_date     DateTime
   salary        Float
   job_title     String
-  department    Department @relation(fields: [department_id], references: [id])
+  department    Department @relation(fields: [department_id], references: [id], onDelete: Cascade)
   department_id Int
   reviews       Review[]   @relation("Employee")
   reviewedBy    Review[]   @relation("Reviewer")

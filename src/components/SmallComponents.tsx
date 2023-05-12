@@ -1,16 +1,27 @@
-import { Combobox, Transition } from "@headlessui/react";
+import { Combobox } from "@headlessui/react";
 import {
   useState,
   type FC,
   type HTMLInputTypeAttribute,
   useEffect,
+  type ChangeEvent,
+  type Dispatch,
+  type SetStateAction,
 } from "react";
 import {
   PencilIcon,
   CheckIcon,
   ChevronUpDownIcon,
 } from "@heroicons/react/20/solid";
-import { Employee } from "@prisma/client";
+import {
+  type Candidate,
+  type Department,
+  type Employee,
+  type Resume,
+  type Review,
+  type Vacancy,
+} from "@prisma/client";
+import { handleFiltration } from "~/hooks/hooks";
 type BackGroundprops = {
   children: JSX.Element[];
 };
@@ -186,7 +197,7 @@ export const DropBox = <
                   Nothing found.
                 </div>
               ) : (
-                data?.map((value: T, index) => (
+                data?.map((value: T) => (
                   <Combobox.Option
                     value={value}
                     key={value.id}
@@ -259,7 +270,7 @@ export const CustomTr = <T,>({ columnNames, onSort }: CustomTrProps<T>) => {
     <tr className="text-white">
       {columnNames.map((value, index) => (
         <td
-          className="border border-blue-400 px-4 py-2 cursor-pointer animate-pulse"
+          className="animate-pulse cursor-pointer border border-blue-400 px-4 py-2"
           scope="col"
           key={index}
           onClick={() => {
@@ -273,8 +284,113 @@ export const CustomTr = <T,>({ columnNames, onSort }: CustomTrProps<T>) => {
           {sortStates[value.name] === "descending" && " ▼"}
         </td>
       ))}
-      <td className="border border-blue-400 px-4 py-2" scope="col">Редагувати</td>
-      <td className="border border-blue-400 px-4 py-2" scope="col">Видалити запис</td>
+      <td className="border border-blue-400 px-4 py-2" scope="col">
+        Редагувати
+      </td>
+      <td className="border border-blue-400 px-4 py-2" scope="col">
+        Видалити запис
+      </td>
     </tr>
+  );
+};
+
+type InputForTableProps = {
+  defaultValue: string | number;
+  type?: HTMLInputTypeAttribute;
+  edit?: boolean;
+  title?: string;
+  onChange?: (title: string, eventValue: string) => void;
+  onChangeNew?: (e: ChangeEvent<HTMLInputElement>) => void;
+  name?: string;
+};
+type DynamicType =
+  | Resume
+  | Vacancy
+  | Employee
+  | Review
+  | Department
+  | Candidate;
+export const InputForTable: FC<InputForTableProps> = ({
+  defaultValue,
+  type = "text",
+  edit = false,
+  onChange,
+  title,
+  onChangeNew,
+  name,
+}) => {
+  return (
+    <>
+      {!edit ? (
+        <>{defaultValue}</>
+      ) : (
+        <input
+          name={name ?? ""}
+          className="peer block w-full appearance-none border-0 border-b-2 border-gray-100 bg-transparent  py-2.5 text-sm text-gray-900 focus:border-red-600 focus:outline-none focus:ring-0 dark:border-gray-600 dark:text-white dark:focus:border-red-500"
+          defaultValue={defaultValue}
+          type={type}
+          onChange={(event) => {
+            onChange?.(title ?? "", event.currentTarget.value);
+            onChangeNew?.(event);
+          }}
+        />
+      )}
+    </>
+  );
+};
+
+type SearchComponentProps<
+  T extends Vacancy | Resume | Candidate | Department | Employee | Review
+> = {
+  data: T[];
+  setFilterState: Dispatch<SetStateAction<T[]>>;
+  filteredData: T[];
+  cycleKey?: () => keyof T | undefined;
+};
+export const SearchComponent = <
+  T extends Vacancy | Resume | Candidate | Department | Employee | Review
+>({
+  data,
+  // filteredData,
+  setFilterState,
+  cycleKey,
+}: SearchComponentProps<T>) => {
+  const handleKeyChange = () => {
+    setDataKey(cycleKey?.());
+  };
+  const getFirstElem = () => {
+    if (data && data.length > 0) {
+      const keys = Object.keys(data[0] as T) as Array<keyof T>;
+      // setDataKey(keys[0]);
+      return keys[0];
+    }
+  };
+  const [dataKey, setDataKey] = useState<keyof T | undefined>(getFirstElem());
+
+  return (
+    <div className="flex flex-col w-full">
+      <label
+        htmlFor="filter"
+        className="animate-pulse text-white cursor-pointer"
+        onClick={handleKeyChange}
+      >
+        Натисніть для фільтрації по{" "}
+        <span className="text-green-600">{dataKey?.toLocaleString()}</span>
+      </label>
+      <input
+        id="filter"
+        className="mb-4 h-8 w-full rounded-lg bg-red-500 bg-opacity-30 text-white"
+        placeholder="Фільтрація"
+        onChange={(e: ChangeEvent<HTMLInputElement>) =>
+          handleFiltration<T, keyof T>(
+            e,
+            setFilterState,
+            // filteredData,
+            data,
+            dataKey
+          )
+        }
+      ></input>
+    </div>
   );
 };

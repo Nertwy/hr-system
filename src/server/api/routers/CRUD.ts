@@ -3,6 +3,148 @@ import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
 import { prisma } from "~/server/db";
 
 export const CRUD = createTRPCRouter({
+  deleteReview: protectedProcedure
+    .input(z.number().int().positive())
+    .mutation(async (opts) => {
+      const { input } = opts;
+      const review = await prisma.review.delete({
+        where: {
+          id: input,
+        },
+      });
+      return review;
+    }),
+  changeReview: protectedProcedure
+    .input(
+      z.object({
+        id: z.number().int().positive(),
+        reviewerId: z.number().int().positive(),
+        reviewDate: z.date(),
+        reviewRating: z.number().positive(),
+        reviewNotes: z.string(),
+        employeeId: z.number().int().positive(),
+      })
+    )
+    .mutation(async (opts) => {
+      const { input } = opts;
+      const review = await prisma.review.update({
+        data: {
+          ...input,
+        },
+        where: {
+          id: input.id,
+        },
+      });
+      return review;
+    }),
+  getAllReview: publicProcedure.query(async () => {
+    const reviews = await prisma.review.findMany();
+    return reviews;
+  }),
+  postReview: protectedProcedure
+    .input(
+      z.object({
+        employeeId: z.number().int().positive(),
+        reviewerId: z.number().int().positive(),
+        reviewDate: z.date(),
+        reviewRating: z.number().positive(),
+        reviewNotes: z.string(),
+      })
+    )
+    .mutation(async (opts) => {
+      const { input } = opts;
+      const review = await prisma.review.create({
+        data: {
+          ...input,
+        },
+      });
+      return review;
+    }),
+  getAllResumes: publicProcedure.query(async () => {
+    const resumes = await prisma.resume.findMany();
+    return resumes;
+  }),
+  changeResume: protectedProcedure
+    .input(
+      z.object({
+        id: z.number().int(),
+        experience: z.string(),
+        education: z.string(),
+        skills: z.string(),
+        achievements: z.string(),
+        candidate_id: z.number().int(),
+      })
+    )
+    .mutation(async (opts) => {
+      const { input } = opts;
+      const resume = await prisma.resume.update({
+        where: {
+          id: input.id,
+        },
+        data: {
+          ...input,
+        },
+      });
+    }),
+  deleteResume: protectedProcedure
+    .input(z.number().int())
+    .mutation(async (opts) => {
+      const { input } = opts;
+      const resume = await prisma.resume.delete({
+        where: {
+          id: input,
+        },
+      });
+      return resume;
+    }),
+  postResume: protectedProcedure
+    .input(
+      z.object({
+        experience: z.string(),
+        education: z.string(),
+        skills: z.string(),
+        achievements: z.string(),
+        candidate_id: z.number().int(),
+      })
+    )
+    .mutation(async (opts) => {
+      const { input } = opts;
+      const resume = await prisma.resume.create({
+        data: {
+          ...input,
+        },
+      });
+      return resume;
+    }),
+  changeDepartment: protectedProcedure
+    .input(z.object({ id: z.number(), name: z.string() }))
+    .mutation(async (opts) => {
+      const { input } = opts;
+      const department = await prisma.department.update({
+        data: {
+          ...input,
+        },
+        where: {
+          id: input.id,
+        },
+      });
+      return department;
+    }),
+  deleteDepartmnet: protectedProcedure
+    .input(z.number())
+    .mutation(async (opts) => {
+      const { input } = opts;
+      const department = await prisma.department.delete({
+        where: {
+          id: input,
+        },
+        include: {
+          employees: true,
+        },
+      });
+
+      return department;
+    }),
   changeEmployee: protectedProcedure
     .input(
       z.object({

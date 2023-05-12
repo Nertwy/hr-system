@@ -2,54 +2,54 @@ import {
   type FC,
   useState,
   Fragment,
-  type HTMLInputTypeAttribute,
   useEffect,
+  type ChangeEvent,
 } from "react";
 import { api } from "~/utils/api";
 import { Transition } from "@headlessui/react";
 import DialogBox from "~/components/DialogBox";
-import { EditButton } from "~/components/SmallComponents";
+import {
+  CustomTr,
+  EditButton,
+  InputForTable,
+  SearchComponent,
+} from "~/components/SmallComponents";
 import Spinner from "~/components/Spinner";
 import { type Candidate } from "@prisma/client";
 import { toast } from "react-toastify";
+import { createKeyCycler, handleChange, handleSort } from "~/hooks/hooks";
+const cycleKey = createKeyCycler<Candidate>({
+  id: -1,
+  vacancyId: null,
+  first_name: "",
+  last_name: "",
+  email: "",
+  phone: "",
+  application_date: new Date(),
+  status: "",
+  comments: null,
+});
 const CandidateTable: FC = () => {
   const [deletedRow, setDeletedRow] = useState<number | null>(null);
   const { data, isLoading, isFetched } = api.CRUD.getAllCandidates.useQuery();
-  const [candidates, setCandidates] = useState<Candidate[] | undefined>(data);
+  const [candidates, setCandidates] = useState<Candidate[]>(data ?? []);
+  const [filter, setFilter] = useState<Candidate[]>(candidates ?? []);
   const [editIndex, setEditIndex] = useState(-1);
   const deleteCandidate = api.CRUD.deleteCandidate.useMutation();
   const updateCandidate = api.CRUD.changeCandidate.useMutation();
-  const [candidateState, setCandidateState] = useState<Candidate>({
-    application_date: new Date(),
-    comments: "",
-    email: "",
-    first_name: "",
-    id: -1,
-    last_name: "",
-    phone: "",
-    status: "",
-    vacancyId: null,
-  });
-  const handleInputChange = (name: string, value: string) => {
-    setCandidateState({
-      ...candidateState,
-      [name]: value,
-    });
-    console.log(candidateState);
-  };
+
   useEffect(() => {
     setCandidates(data ?? []);
+    setFilter(data ?? []);
   }, [isFetched]);
-  const handleSubmitChange = () => {
-    updateCandidate.mutate(candidateState, {
+  const handleSubmitChange = (id: number) => {
+    const candidateNew: Candidate | undefined = candidates.find(
+      (val) => val.id === id
+    );
+    if (!candidateNew) return;
+    updateCandidate.mutate(candidateNew, {
       onSuccess: () => {
         toast.success("Запис змінено!");
-        setCandidates([
-          candidateState,
-          ...(candidates?.filter(
-            (candidate) => candidate.id !== candidateState.id
-          ) ?? []),
-        ]);
       },
       onError() {
         toast.error("Сталася помилка!");
@@ -67,7 +67,40 @@ const CandidateTable: FC = () => {
       },
     });
   };
-
+  const columnNames: { name: keyof Candidate; value: string }[] = [
+    {
+      name: "id",
+      value: "ID",
+    },
+    {
+      name: "vacancyId",
+      value: "Код вакансії",
+    },
+    {
+      name: "first_name",
+      value: "Ім'я",
+    },
+    {
+      name: "last_name",
+      value: "Фамілія",
+    },
+    {
+      name: "email",
+      value: "Пошта",
+    },
+    {
+      name: "phone",
+      value: "Телефон",
+    },
+    {
+      name: "status",
+      value: "Статус",
+    },
+    {
+      name: "comments",
+      value: "Коментарі",
+    },
+  ];
   if (isLoading) {
     return <Spinner />;
   }
@@ -75,41 +108,22 @@ const CandidateTable: FC = () => {
     <div className="m-auto mt-12 w-5/6 pt-28">
       <table className="w-full table-auto border-collapse">
         <thead>
-          <tr className="text-white">
-            <th className="border border-blue-400 px-4 py-2" scope="col">
-              ID
-            </th>
-            <th className="border border-blue-400 px-4 py-2" scope="col">
-              Вакансія
-            </th>
-            <th className="border border-blue-400 px-4 py-2" scope="col">
-              {"Ім'я"}
-            </th>
-            <th className="border border-blue-400 px-4 py-2" scope="col">
-              Фамілія
-            </th>
-            <th className="border border-blue-400 px-4 py-2" scope="col">
-              Пошта
-            </th>
-            <th className="border border-blue-400 px-4 py-2" scope="col">
-              Телефон
-            </th>
-            <th className="border border-blue-400 px-4 py-2" scope="col">
-              Статус
-            </th>
-            <th className="border border-blue-400 px-4 py-2" scope="col">
-              Коментарі
-            </th>
-            <th className="border border-blue-400 px-4 py-2" scope="col">
-              Редагувати
-            </th>
-            <th className="border border-blue-400 px-4 py-2" scope="col">
-              Видалити запис
-            </th>
-          </tr>
+          <SearchComponent
+            data={candidates}
+            filteredData={filter}
+            setFilterState={setFilter}
+            cycleKey={cycleKey}
+          ></SearchComponent>
+          <CustomTr
+            columnNames={columnNames}
+            onSort={(key, isAscending) =>
+              handleSort(key, isAscending, filter, setFilter)
+            }
+          />
         </thead>
+
         <tbody className="rounded-xl">
-          {candidates?.map((candidate) => (
+          {filter?.map((candidate) => (
             <Fragment key={candidate.id}>
               <Transition
                 as="tr"
@@ -130,74 +144,90 @@ const CandidateTable: FC = () => {
                 </td>
                 <td className="border border-blue-400 px-4 py-2">
                   <InputForTable
+                    name="vacancyId"
                     type="number"
                     defaultValue={candidate.vacancyId ?? -1}
                     edit={editIndex === candidate.id}
                     title="vacancyId"
-                    onChange={handleInputChange}
+                    onChangeNew={(e: ChangeEvent<HTMLInputElement>) =>
+                      handleChange(e, setCandidates, editIndex)
+                    }
                   />
                 </td>
                 <td className="border border-blue-400 px-4 py-2">
                   <InputForTable
+                    name="first_name"
                     title="first_name"
                     defaultValue={candidate.first_name}
                     edit={editIndex === candidate.id}
-                    onChange={handleInputChange}
+                    onChangeNew={(e: ChangeEvent<HTMLInputElement>) =>
+                      handleChange(e, setCandidates, editIndex)
+                    }
                   />
                 </td>
                 <td className="border border-blue-400 px-4 py-2">
                   <InputForTable
+                    name="last_name"
                     defaultValue={candidate.last_name}
                     edit={editIndex === candidate.id}
                     title="last_name"
-                    onChange={handleInputChange}
+                    onChangeNew={(e: ChangeEvent<HTMLInputElement>) =>
+                      handleChange(e, setCandidates, editIndex)
+                    }
                   />
                 </td>
                 <td className="border border-blue-400 px-4 py-2">
                   <InputForTable
+                    name="email"
                     defaultValue={candidate.email}
                     type="email"
                     edit={editIndex === candidate.id}
                     title="email"
-                    onChange={handleInputChange}
+                    onChangeNew={(e: ChangeEvent<HTMLInputElement>) =>
+                      handleChange(e, setCandidates, editIndex)
+                    }
                   />
                 </td>
                 <td className="border border-blue-400 px-4 py-2">
                   <InputForTable
+                    name="phone"
                     defaultValue={candidate.phone}
                     type="tel"
                     edit={editIndex === candidate.id}
                     title="phone"
-                    onChange={handleInputChange}
+                    onChangeNew={(e: ChangeEvent<HTMLInputElement>) =>
+                      handleChange(e, setCandidates, editIndex)
+                    }
                   />
                 </td>
                 <td className="border border-blue-400 px-4 py-2">
                   <InputForTable
+                    name="status"
                     defaultValue={candidate.status}
                     edit={editIndex === candidate.id}
                     title="status"
-                    onChange={handleInputChange}
+                    onChangeNew={(e: ChangeEvent<HTMLInputElement>) =>
+                      handleChange(e, setCandidates, editIndex)
+                    }
                   />
                 </td>
                 <td className="border border-blue-400 px-4 py-2">
                   <InputForTable
+                    name="comments"
                     defaultValue={candidate.comments ?? ""}
                     type="text"
                     edit={editIndex === candidate.id}
                     title="comments"
-                    onChange={handleInputChange}
+                    onChangeNew={(e: ChangeEvent<HTMLInputElement>) =>
+                      handleChange(e, setCandidates, editIndex)
+                    }
                   />
                 </td>
                 <td className="border border-blue-400 px-4 py-2">
                   <EditButton
-                    setId={() => {
-                      setCandidateState({
-                        ...candidate,
-                      });
-                      setEditIndex(candidate.id ?? -1);
-                    }}
+                    setId={() => setEditIndex(candidate.id ?? -1)}
                     handleCancel={() => setEditIndex(-1)}
-                    handleSubmit={handleSubmitChange}
+                    handleSubmit={() => handleSubmitChange(candidate.id)}
                   />
                 </td>
                 <td className="border border-blue-400 px-4 py-2">
@@ -217,37 +247,6 @@ const CandidateTable: FC = () => {
         </tbody>
       </table>
     </div>
-  );
-};
-type InputForTableProps = {
-  defaultValue: string | number;
-  type?: HTMLInputTypeAttribute;
-  edit?: boolean;
-  title?: string;
-  onChange?: (title: string, eventValue: string) => void;
-};
-const InputForTable: FC<InputForTableProps> = ({
-  defaultValue,
-  type = "text",
-  edit = false,
-  onChange,
-  title,
-}) => {
-  return (
-    <>
-      {!edit ? (
-        <>{defaultValue}</>
-      ) : (
-        <input
-          className="peer block w-full appearance-none border-0 border-b-2 border-gray-100 bg-transparent  py-2.5 text-sm text-gray-900 focus:border-red-600 focus:outline-none focus:ring-0 dark:border-gray-600 dark:text-white dark:focus:border-red-500"
-          defaultValue={defaultValue}
-          type={type}
-          onChange={(event) => {
-            onChange?.(title ?? "", event.currentTarget.value);
-          }}
-        />
-      )}
-    </>
   );
 };
 
