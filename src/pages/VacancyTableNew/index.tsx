@@ -1,12 +1,10 @@
 import { type Vacancy } from "@prisma/client";
 import { type NextPage } from "next";
 import React, { useState } from "react";
-import { useMemo } from "react";
-import { useTable, type Column, type CellProps, Row } from "react-table";
+import { useTable, type Column, type CellProps, type Row } from "react-table";
 import Spinner from "~/components/Spinner";
 import { api } from "~/utils/api";
-import { InputForTable } from "../VacancyTable/VacancyTable";
-import { BackGround, EditButton } from "~/components/SmallComponents";
+import { BackGround, EditButton, InputForTable } from "~/components/SmallComponents";
 import DialogBox from "~/components/DialogBox";
 import { toast } from "react-toastify";
 import NavBar from "~/components/NavBar";
@@ -145,7 +143,7 @@ const VacancyTableNew: NextPage<Props> = ({ data }) => {
 
   const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } =
     useTable({ columns, data });
-console.log("Render");
+  console.log("Render");
 
   return (
     <table {...getTableProps()}>
