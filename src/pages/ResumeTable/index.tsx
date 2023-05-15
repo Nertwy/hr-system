@@ -7,6 +7,7 @@ import DialogBox from "~/components/DialogBox";
 import NavBar from "~/components/NavBar";
 import {
   BackGround,
+  CustomSelect,
   CustomTr,
   EditButton,
   InputForTable,
@@ -15,7 +16,7 @@ import {
 import Spinner from "~/components/Spinner";
 import { createKeyCycler, handleChange, handleSort } from "~/hooks/hooks";
 import { api } from "~/utils/api";
-
+import { Option } from "~/components/SmallComponents";
 const cycleKey = createKeyCycler<Resume>({
   id: -1,
   achievements: "",
@@ -47,18 +48,36 @@ const columnNames: { name: ResumeKey; value: string }[] = [
     value: "Індекс кандидата",
   },
 ];
+
 const ResumeTable: NextPage = () => {
   const [editIndex, setEditIndex] = useState(-1);
   const [deletedRow, setDeletedRow] = useState<number | null>(null);
-  const { data, isLoading, isFetched } = api.CRUD.getAllResumes.useQuery();
+  const { data, isLoading, isFetched, refetch } =
+    api.CRUD.getAllResumes.useQuery();
+  const candidateData = api.CRUD.getAllCandidates.useQuery();
   const [resumes, setResumes] = useState<Resume[]>(data ?? []);
   const [filter, setFilter] = useState<Resume[]>(data ?? []);
   const changeResume = api.CRUD.changeResume.useMutation();
   const deleteResume = api.CRUD.deleteResume.useMutation();
+  const [candidateOptions, setCandidateOptions] = useState<Option<string>[]>(
+    []
+  );
   useEffect(() => {
     setFilter(data ?? []);
     setResumes(data ?? []);
-  }, [isFetched]);
+    setCandidateOptions(
+      candidateData.data
+        ? candidateData.data.map((elem) => ({
+            id: elem.id,
+            fieldName: elem.last_name,
+          }))
+        : []
+    );
+  }, [isFetched, candidateData.isFetched]);
+  useEffect(() => {
+    setFilter(resumes);
+    // console.log(resumes);
+  }, [resumes]);
   if (isLoading) return <Spinner />;
   function handleDeleteQuery(id: number) {
     deleteResume.mutate(id, {
@@ -89,6 +108,7 @@ const ResumeTable: NextPage = () => {
       },
     });
   };
+
   return (
     <BackGround>
       <NavBar></NavBar>
@@ -161,9 +181,11 @@ const ResumeTable: NextPage = () => {
                   </td>
                   <td className="border border-blue-400 px-4 py-2">
                     <InputForTable
+                      type="dropbox"
                       onChangeNew={(e: ChangeEvent<HTMLInputElement>) =>
                         handleChange(e, setResumes, editIndex)
                       }
+                      dataForDropBox={candidateOptions}
                       name="candidate_id"
                       title="candidate_id"
                       defaultValue={res.candidate_id}

@@ -174,7 +174,7 @@ const VacancyForm: FC = () => {
  shadow focus:outline-none"
           />
         </div>
-       <SubmitButton/>
+        <SubmitButton />
       </form>
     </div>
   );

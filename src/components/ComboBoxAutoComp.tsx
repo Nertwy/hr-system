@@ -2,7 +2,6 @@ import { type FC, Fragment, useEffect, useState } from "react";
 import { Combobox, Transition } from "@headlessui/react";
 import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
 import { type Vacancy } from "~/interface";
-import { Review } from "@prisma/client";
 type ComboBoxAutoType = {
   data: Vacancy[] | null;
   callback: (vacancyId: number | null) => void;

@@ -18,6 +18,7 @@ import Spinner from "~/components/Spinner";
 import { type Candidate } from "@prisma/client";
 import { toast } from "react-toastify";
 import { createKeyCycler, handleChange, handleSort } from "~/hooks/hooks";
+import { type Option } from "~/components/SmallComponents";
 const cycleKey = createKeyCycler<Candidate>({
   id: -1,
   vacancyId: null,
@@ -37,11 +38,20 @@ const CandidateTable: FC = () => {
   const [editIndex, setEditIndex] = useState(-1);
   const deleteCandidate = api.CRUD.deleteCandidate.useMutation();
   const updateCandidate = api.CRUD.changeCandidate.useMutation();
-
+  const [vacancyOptions, setVacancyOptions] = useState<Option<string>[]>([]);
+  const vacancy = api.CRUD.getAllVacancies.useQuery();
   useEffect(() => {
     setCandidates(data ?? []);
     setFilter(data ?? []);
-  }, [isFetched]);
+    setVacancyOptions(
+      vacancy.data
+        ? vacancy?.data.map((elem) => ({
+            id: elem.id,
+            fieldName: elem.title,
+          }))
+        : []
+    );
+  }, [isFetched, vacancy.isFetched]);
   const handleSubmitChange = (id: number) => {
     const candidateNew: Candidate | undefined = candidates.find(
       (val) => val.id === id
@@ -144,8 +154,9 @@ const CandidateTable: FC = () => {
                 </td>
                 <td className="border border-blue-400 px-4 py-2">
                   <InputForTable
+                    dataForDropBox={vacancyOptions}
                     name="vacancyId"
-                    type="number"
+                    type="dropbox"
                     defaultValue={candidate.vacancyId ?? -1}
                     edit={editIndex === candidate.id}
                     title="vacancyId"

@@ -27,6 +27,7 @@ export const handleChange = <T extends { id: number; [key: string]: any }>(
   setFunction: Dispatch<SetStateAction<T[]>>,
   editindex: number
 ) => {
+  
   const { name, value } = e.currentTarget;
   setFunction((prevRes: T[]) => {
     const updatedArr = prevRes?.map((elem) => {
@@ -46,6 +47,8 @@ export const handleChange = <T extends { id: number; [key: string]: any }>(
       }
       return elem;
     });
+    // console.log(updatedArr);
+    
     return updatedArr;
   });
 };
@@ -122,3 +125,5 @@ export const createKeyCycler = <T extends Record<string, unknown>>(obj: T) => {
     return currentKey;
   } as ()=> keyof T | undefined;
 };
+
+

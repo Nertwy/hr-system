@@ -6,16 +6,18 @@ import {
   EditButton,
   InputForTable,
   SearchComponent,
-  type SortState,
 } from "~/components/SmallComponents";
 import Spinner from "~/components/Spinner";
 import { api } from "~/utils/api";
 import { handleSort } from "~/hooks/hooks";
 import DialogBox from "~/components/DialogBox";
-import { useState, useEffect } from "react";
-import { type Employee } from "@prisma/client";
+import { useState, useEffect, type ChangeEvent } from "react";
+import { type Department, type Employee } from "@prisma/client";
 import { toast } from "react-toastify";
 import { createKeyCycler } from "~/hooks/hooks";
+import { type Option } from "~/components/SmallComponents";
+import { handleChange } from "~/hooks/hooks";
+import { Transition } from "@headlessui/react";
 const cycleKey = createKeyCycler<Employee>({
   id: -1,
   email: "",
@@ -31,21 +33,12 @@ const EmployeePage: NextPage = () => {
   const { data, isFetched, isError, refetch, isSuccess } =
     api.CRUD.getAllEmployees.useQuery();
   const [editIndex, setEditIndex] = useState(-1);
-  const [employer, setEmployer] = useState<Employee>({
-    department_id: -1,
-    email: "",
-    first_name: "",
-    hire_date: new Date(),
-    id: -1,
-    job_title: "",
-    last_name: "",
-    phone: "",
-    salary: -1,
-  });
+  const departmentOptions = api.CRUD.getAllDepartment.useQuery();
   const updateEmployee = api.CRUD.changeEmployee.useMutation();
   const deleteEmployee = api.CRUD.deleteEmployee.useMutation();
   const [employees, setEmployees] = useState<Employee[]>(data ?? []);
   const [filter, setFilter] = useState<Employee[]>([]);
+  const [deletedRow, setDeletedRow] = useState<number | null>(null);
   const columnNames: { name: keyof Employee; value: string }[] = [
     { name: "id", value: "ID" },
     { name: "first_name", value: "Ім'я" },
@@ -57,8 +50,12 @@ const EmployeePage: NextPage = () => {
     { name: "job_title", value: "Заголовок" },
     { name: "department_id", value: "Департамент" },
   ];
-  const handleSubmit = () => {
-    updateEmployee.mutate(employer, {
+  const handleSubmitChange = (id: number) => {
+    const newEmployee: Employee | undefined = employees.find(
+      (val: Employee) => val.id === id
+    );
+    if (!newEmployee) return;
+    updateEmployee.mutate(newEmployee, {
       onSuccess() {
         toast.success("Запис змінено!");
         void refetch();
@@ -68,25 +65,21 @@ const EmployeePage: NextPage = () => {
       },
     });
   };
-
-  const handleInputChange = (name: string, value: string) => {
-    setEmployer({
-      ...employer,
-      [name]:
-        name === "salary"
-          ? Number(value)
-          : name === "hire_date"
-          ? new Date(value)
-          : name === "department_id"
-          ? Number(value)
-          : value,
-    });
-    // console.log(employer);
-  };
+  const [departmentOption, setDepartmentOption] = useState<Option<string>[]>(
+    []
+  );
   useEffect(() => {
-    setFilter(data ?? []);
     setEmployees(data ?? []);
-  }, [isSuccess, data]);
+    setFilter(data ?? []);
+    setDepartmentOption(
+      departmentOptions.data
+        ? departmentOptions?.data.map((elem: Department) => ({
+            id: elem.id,
+            fieldName: elem.name,
+          }))
+        : []
+    );
+  }, [isSuccess, data, departmentOptions.isFetched]);
   if (isError) {
     return <div className="text-white">Error accured!</div>;
   }
@@ -94,7 +87,7 @@ const EmployeePage: NextPage = () => {
     deleteEmployee.mutate(id, {
       onSuccess() {
         toast.success(`Запис з Id  ${id} видалено!`);
-        void refetch();
+        // void refetch();
       },
       onError(error) {
         toast.error("Запис не видалено!");
@@ -127,8 +120,24 @@ const EmployeePage: NextPage = () => {
                 ></CustomTr>
               </thead>
               <tbody className="">
-                {filter?.map((value) => (
-                  <tr key={value.id} className="text-white">
+                {filter?.map((value: Employee) => (
+                  <Transition
+                    key={value.id}
+                    as="tr"
+                    className="rounded-xl text-white"
+                    show={deletedRow !== value.id}
+                    enter="transition-opacity duration-75"
+                    enterFrom="opacity-0"
+                    enterTo="opacity-100"
+                    leave="transition-opacity duration-150"
+                    leaveFrom="opacity-100"
+                    leaveTo="opacity-0"
+                    onTransitionEnd={() =>
+                      setEmployees(
+                        employees?.filter((v) => v.id !== deletedRow)
+                      )
+                    }
+                  >
                     <td
                       key={value.id}
                       className="border border-blue-400 px-4 py-2"
@@ -137,15 +146,24 @@ const EmployeePage: NextPage = () => {
                     </td>
                     <td className="border border-blue-400 px-4 py-2">
                       <InputForTable
-                        onChange={handleInputChange}
+                        name="first_name"
+                        onChangeNew={(e) =>
+                          handleChange(e, setEmployees, editIndex)
+                        }
+                        // onChange={handleInputChange}
                         title="first_name"
+                        type="text"
                         defaultValue={value.first_name}
                         edit={editIndex === value.id}
                       />
                     </td>
                     <td className="border border-blue-400 px-4 py-2">
                       <InputForTable
-                        onChange={handleInputChange}
+                        name="last_name"
+                        onChangeNew={(e) =>
+                          handleChange(e, setEmployees, editIndex)
+                        }
+                        // onChange={handleInputChange}
                         title="last_name"
                         defaultValue={value.last_name}
                         edit={editIndex === value.id}
@@ -153,7 +171,11 @@ const EmployeePage: NextPage = () => {
                     </td>
                     <td className="border border-blue-400 px-4 py-2">
                       <InputForTable
-                        onChange={handleInputChange}
+                        name="email"
+                        onChangeNew={(e) =>
+                          handleChange(e, setEmployees, editIndex)
+                        }
+                        // onChange={handleInputChange}
                         title="email"
                         type="email"
                         defaultValue={value.email}
@@ -163,7 +185,11 @@ const EmployeePage: NextPage = () => {
 
                     <td className="border border-blue-400 px-4 py-2">
                       <InputForTable
-                        onChange={handleInputChange}
+                        name="phone"
+                        onChangeNew={(e) =>
+                          handleChange(e, setEmployees, editIndex)
+                        }
+                        // onChange={handleInputChange}
                         title="phone"
                         type="tel"
                         defaultValue={value.phone}
@@ -172,7 +198,11 @@ const EmployeePage: NextPage = () => {
                     </td>
                     <td className="border border-blue-400 px-4 py-2">
                       <InputForTable
-                        onChange={handleInputChange}
+                        name="hire_date"
+                        onChangeNew={(e) =>
+                          handleChange(e, setEmployees, editIndex)
+                        }
+                        // onChange={handleInputChange}
                         title="hire_date"
                         type="date"
                         defaultValue={value.hire_date
@@ -183,7 +213,11 @@ const EmployeePage: NextPage = () => {
                     </td>
                     <td className="border border-blue-400 px-4 py-2">
                       <InputForTable
-                        onChange={handleInputChange}
+                        name="salary"
+                        onChangeNew={(e) =>
+                          handleChange(e, setEmployees, editIndex)
+                        }
+                        // onChange={handleInputChange}
                         title="salary"
                         type="number"
                         defaultValue={value.salary.toString()}
@@ -192,7 +226,11 @@ const EmployeePage: NextPage = () => {
                     </td>
                     <td className="border border-blue-400 px-4 py-2">
                       <InputForTable
-                        onChange={handleInputChange}
+                        name="job_title"
+                        onChangeNew={(e) =>
+                          handleChange(e, setEmployees, editIndex)
+                        }
+                        // onChange={handleInputChange}
                         title="job_title"
                         defaultValue={value.job_title}
                         edit={editIndex === value.id}
@@ -200,22 +238,23 @@ const EmployeePage: NextPage = () => {
                     </td>
                     <td className="border border-blue-400 px-4 py-2">
                       <InputForTable
-                        onChange={handleInputChange}
+                        dataForDropBox={departmentOption}
+                        type="dropbox"
+                        onChangeNew={(e: ChangeEvent<HTMLInputElement>) =>
+                          handleChange(e, setEmployees, editIndex)
+                        }
+                        name="department_id"
+                        // onChange={handleInputChange}
                         title="department_id"
-                        defaultValue={value.department_id.toString()}
+                        defaultValue={value.department_id}
                         edit={editIndex === value.id}
                       />
                     </td>
                     <td className="border border-blue-400 px-4 py-2 ">
                       <EditButton
-                        handleSubmit={handleSubmit}
-                        setId={() => {
-                          setEmployer({
-                            ...value,
-                          });
-                          setEditIndex(value.id ?? -1);
-                        }}
+                        setId={() => setEditIndex(value.id ?? -1)}
                         handleCancel={() => setEditIndex(-1)}
+                        handleSubmit={() => handleSubmitChange(value.id)}
                       />
                     </td>
                     <td className="border border-blue-400 px-4 py-2">
@@ -223,10 +262,13 @@ const EmployeePage: NextPage = () => {
                         buttonName="Видалити"
                         text="Працівника буде видалено!"
                         title="Видалити Працівника?"
-                        onAccept={() => handleDeleteEmployee(value.id)}
+                        onAccept={() => {
+                          setDeletedRow(value.id ?? -1);
+                          handleDeleteEmployee(value.id ?? -1);
+                        }}
                       />
                     </td>
-                  </tr>
+                  </Transition>
                 ))}
               </tbody>
             </table>

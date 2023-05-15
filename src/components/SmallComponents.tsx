@@ -1,4 +1,4 @@
-import { Combobox } from "@headlessui/react";
+import { Combobox, Listbox, Transition } from "@headlessui/react";
 import {
   useState,
   type FC,
@@ -7,6 +7,7 @@ import {
   type ChangeEvent,
   type Dispatch,
   type SetStateAction,
+  Fragment,
 } from "react";
 import {
   PencilIcon,
@@ -296,20 +297,15 @@ export const CustomTr = <T,>({ columnNames, onSort }: CustomTrProps<T>) => {
 
 type InputForTableProps = {
   defaultValue: string | number;
-  type?: HTMLInputTypeAttribute;
+  type?: HTMLInputTypeAttribute | "dropbox";
   edit?: boolean;
   title?: string;
   onChange?: (title: string, eventValue: string) => void;
   onChangeNew?: (e: ChangeEvent<HTMLInputElement>) => void;
   name?: string;
+  dataForDropBox?: { id: number; fieldName: React.ReactNode }[];
 };
-type DynamicType =
-  | Resume
-  | Vacancy
-  | Employee
-  | Review
-  | Department
-  | Candidate;
+
 export const InputForTable: FC<InputForTableProps> = ({
   defaultValue,
   type = "text",
@@ -318,22 +314,36 @@ export const InputForTable: FC<InputForTableProps> = ({
   title,
   onChangeNew,
   name,
+  dataForDropBox,
 }) => {
+  const isDropBox = type === "dropbox";
   return (
     <>
       {!edit ? (
         <>{defaultValue}</>
       ) : (
-        <input
-          name={name ?? ""}
-          className="peer block w-full appearance-none border-0 border-b-2 border-gray-100 bg-transparent  py-2.5 text-sm text-gray-900 focus:border-red-600 focus:outline-none focus:ring-0 dark:border-gray-600 dark:text-white dark:focus:border-red-500"
-          defaultValue={defaultValue}
-          type={type}
-          onChange={(event) => {
-            onChange?.(title ?? "", event.currentTarget.value);
-            onChangeNew?.(event);
-          }}
-        />
+        <>
+          {isDropBox ? (
+            <CustomSelect
+              name={name ?? ""}
+              initialValue={defaultValue as number}
+              fieldName="id"
+              data={dataForDropBox ?? []}
+              onChange={(event) => onChangeNew?.(event)}
+            />
+          ) : (
+            <input
+              name={name ?? ""}
+              className="peer block w-full appearance-none border-0 border-b-2 border-gray-100 bg-transparent  py-2.5 text-sm text-gray-900 focus:border-red-600 focus:outline-none focus:ring-0 dark:border-gray-600 dark:text-white dark:focus:border-red-500"
+              defaultValue={defaultValue}
+              type={type}
+              onChange={(event) => {
+                onChange?.(title ?? "", event.currentTarget.value);
+                onChangeNew?.(event);
+              }}
+            />
+          )}
+        </>
       )}
     </>
   );
@@ -368,10 +378,10 @@ export const SearchComponent = <
   const [dataKey, setDataKey] = useState<keyof T | undefined>(getFirstElem());
 
   return (
-    <div className="flex flex-col w-full">
+    <div className="flex w-full flex-col">
       <label
         htmlFor="filter"
-        className="animate-pulse text-white cursor-pointer"
+        className="animate-pulse cursor-pointer text-white"
         onClick={handleKeyChange}
       >
         Натисніть для фільтрації по{" "}
@@ -393,4 +403,110 @@ export const SearchComponent = <
       ></input>
     </div>
   );
+};
+
+type Option = {
+  id: number;
+  fieldName: React.ReactNode;
+};
+
+type CustomSelectProps<T extends Option> = {
+  fieldName: keyof T;
+  data: T[];
+  onChange?: (e: ChangeEvent<HTMLInputElement>) => void;
+  initialValue?: number;
+  name: string;
+};
+
+// Custom Select component
+export const CustomSelect = <T extends Option>({
+  initialValue,
+  fieldName,
+  data,
+  name,
+  onChange,
+}: CustomSelectProps<T>) => {
+  const [selectedItem, setSelectedItem] = useState<T | undefined>(
+    initialValue ? data.find((elem) => elem.id === initialValue) : undefined
+  ); // Initialize with the first item
+
+  const handleChange = (item: T) => {
+    setSelectedItem(item);
+    onChange?.({
+      currentTarget: {
+        name: name,
+        value: selectedItem?.id ?? -1,
+      },
+    } as unknown);
+  };
+  useEffect(() => {
+    onChange?.({
+      currentTarget: {
+        name: name,
+        value: selectedItem?.id ?? -1,
+      },
+    } as unknown);
+  }, [selectedItem]);
+  return (
+    <Listbox value={selectedItem} onChange={(item: T) => handleChange(item)}>
+      <div className="relative">
+        <Listbox.Button className="relative w-full cursor-pointer rounded-lg bg-white py-2 pl-3 pr-10 text-left shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <span className="block truncate text-black">
+            {selectedItem?.fieldName}
+          </span>
+          <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2"></span>
+        </Listbox.Button>
+        <Transition
+          as={Fragment}
+          leave="transition ease-in duration-100"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
+        >
+          <Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+            {data.map((item) => (
+              <Listbox.Option
+                // onClick={() => {
+                //   const value = selectedItem?.id ?? -1;
+                //   onChange?.({
+                //     currentTarget: { name, value },
+                //   } as any);
+                // }}
+                key={item.id}
+                value={item}
+                className={({ active }) =>
+                  `${active ? "bg-blue-600 text-white" : "text-gray-900"}
+                    relative cursor-pointer select-none py-2 pl-10 pr-4`
+                }
+              >
+                {({ selected, active }) => (
+                  <>
+                    <span
+                      className={`${
+                        selected ? "font-medium" : "font-normal"
+                      } block truncate`}
+                    >
+                      {item?.fieldName}
+                    </span>
+                    {selected && (
+                      <span
+                        className={`${active ? "text-white" : "text-blue-600"}
+                          absolute inset-y-0 left-0 flex items-center pl-3`}
+                      >
+                        <CheckIcon className="h-5 w-5" />
+                      </span>
+                    )}
+                  </>
+                )}
+              </Listbox.Option>
+            ))}
+          </Listbox.Options>
+        </Transition>
+      </div>
+    </Listbox>
+  );
+};
+
+export type Option<T> = {
+  id: number;
+  fieldName: T;
 };
