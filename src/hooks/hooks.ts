@@ -6,7 +6,12 @@ import {
   type Employee,
   type Review,
 } from "@prisma/client";
-import { type ChangeEvent, type Dispatch, type SetStateAction,  useState } from "react";
+import {
+  type ChangeEvent,
+  type Dispatch,
+  type SetStateAction,
+  useState,
+} from "react";
 import { type SortState } from "~/components/SmallComponents";
 
 export const useOnChange = (initialValue: string) => {
@@ -22,18 +27,23 @@ export const useOnChange = (initialValue: string) => {
   };
 };
 
+export type customDropBoxProp = {
+  currentTarget: {
+    name: string;
+    value: number;
+  };
+};
 export const handleChange = <T extends { id: number; [key: string]: any }>(
-  e: React.ChangeEvent<HTMLInputElement>,
+  e: React.ChangeEvent<HTMLInputElement> | customDropBoxProp,
   setFunction: Dispatch<SetStateAction<T[]>>,
   editindex: number
 ) => {
-  
   const { name, value } = e.currentTarget;
   setFunction((prevRes: T[]) => {
     const updatedArr = prevRes?.map((elem) => {
       if (editindex === elem.id) {
         let updatedValue: unknown;
-        if (typeof elem[name] === 'number') {
+        if (typeof elem[name] === "number") {
           updatedValue = Number(value);
         } else if (elem[name] instanceof Date) {
           updatedValue = new Date(value);
@@ -48,7 +58,7 @@ export const handleChange = <T extends { id: number; [key: string]: any }>(
       return elem;
     });
     // console.log(updatedArr);
-    
+
     return updatedArr;
   });
 };
@@ -123,7 +133,5 @@ export const createKeyCycler = <T extends Record<string, unknown>>(obj: T) => {
     const currentKey = keys[currentIndex];
     currentIndex = (currentIndex + 1) % keys.length;
     return currentKey;
-  } as ()=> keyof T | undefined;
+  } as () => keyof T | undefined;
 };
-
-

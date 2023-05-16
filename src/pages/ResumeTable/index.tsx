@@ -148,7 +148,7 @@ const ResumeTable: NextPage = () => {
                   <td className="border border-blue-400 px-4 py-2">{res.id}</td>
                   <td className="border border-blue-400 px-4 py-2">
                     <InputForTable
-                      onChangeNew={(e: ChangeEvent<HTMLInputElement>) =>
+                      onChangeNew={(e) =>
                         handleChange(e, setResumes, editIndex)
                       }
                       name="achievements"
@@ -160,7 +160,7 @@ const ResumeTable: NextPage = () => {
                   <td className="border border-blue-400 px-4 py-2">
                     <InputForTable
                       name="experience"
-                      onChangeNew={(e: ChangeEvent<HTMLInputElement>) =>
+                      onChangeNew={(e) =>
                         handleChange(e, setResumes, editIndex)
                       }
                       title="achivements"
@@ -170,7 +170,7 @@ const ResumeTable: NextPage = () => {
                   </td>
                   <td className="border border-blue-400 px-4 py-2">
                     <InputForTable
-                      onChangeNew={(e: ChangeEvent<HTMLInputElement>) =>
+                      onChangeNew={(e) =>
                         handleChange(e, setResumes, editIndex)
                       }
                       name="education"
@@ -182,7 +182,7 @@ const ResumeTable: NextPage = () => {
                   <td className="border border-blue-400 px-4 py-2">
                     <InputForTable
                       type="dropbox"
-                      onChangeNew={(e: ChangeEvent<HTMLInputElement>) =>
+                      onChangeNew={(e) =>
                         handleChange(e, setResumes, editIndex)
                       }
                       dataForDropBox={candidateOptions}

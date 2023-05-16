@@ -160,7 +160,7 @@ const CandidateTable: FC = () => {
                     defaultValue={candidate.vacancyId ?? -1}
                     edit={editIndex === candidate.id}
                     title="vacancyId"
-                    onChangeNew={(e: ChangeEvent<HTMLInputElement>) =>
+                    onChangeNew={(e) =>
                       handleChange(e, setCandidates, editIndex)
                     }
                   />
@@ -171,7 +171,7 @@ const CandidateTable: FC = () => {
                     title="first_name"
                     defaultValue={candidate.first_name}
                     edit={editIndex === candidate.id}
-                    onChangeNew={(e: ChangeEvent<HTMLInputElement>) =>
+                    onChangeNew={(e) =>
                       handleChange(e, setCandidates, editIndex)
                     }
                   />
@@ -182,7 +182,7 @@ const CandidateTable: FC = () => {
                     defaultValue={candidate.last_name}
                     edit={editIndex === candidate.id}
                     title="last_name"
-                    onChangeNew={(e: ChangeEvent<HTMLInputElement>) =>
+                    onChangeNew={(e) =>
                       handleChange(e, setCandidates, editIndex)
                     }
                   />
@@ -194,7 +194,7 @@ const CandidateTable: FC = () => {
                     type="email"
                     edit={editIndex === candidate.id}
                     title="email"
-                    onChangeNew={(e: ChangeEvent<HTMLInputElement>) =>
+                    onChangeNew={(e) =>
                       handleChange(e, setCandidates, editIndex)
                     }
                   />
@@ -206,7 +206,7 @@ const CandidateTable: FC = () => {
                     type="tel"
                     edit={editIndex === candidate.id}
                     title="phone"
-                    onChangeNew={(e: ChangeEvent<HTMLInputElement>) =>
+                    onChangeNew={(e) =>
                       handleChange(e, setCandidates, editIndex)
                     }
                   />
@@ -217,7 +217,7 @@ const CandidateTable: FC = () => {
                     defaultValue={candidate.status}
                     edit={editIndex === candidate.id}
                     title="status"
-                    onChangeNew={(e: ChangeEvent<HTMLInputElement>) =>
+                    onChangeNew={(e) =>
                       handleChange(e, setCandidates, editIndex)
                     }
                   />
@@ -229,7 +229,7 @@ const CandidateTable: FC = () => {
                     type="text"
                     edit={editIndex === candidate.id}
                     title="comments"
-                    onChangeNew={(e: ChangeEvent<HTMLInputElement>) =>
+                    onChangeNew={(e) =>
                       handleChange(e, setCandidates, editIndex)
                     }
                   />

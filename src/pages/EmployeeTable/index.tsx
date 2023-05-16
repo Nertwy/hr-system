@@ -240,7 +240,7 @@ const EmployeePage: NextPage = () => {
                       <InputForTable
                         dataForDropBox={departmentOption}
                         type="dropbox"
-                        onChangeNew={(e: ChangeEvent<HTMLInputElement>) =>
+                        onChangeNew={(e) =>
                           handleChange(e, setEmployees, editIndex)
                         }
                         name="department_id"

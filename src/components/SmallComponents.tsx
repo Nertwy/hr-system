@@ -22,7 +22,7 @@ import {
   type Review,
   type Vacancy,
 } from "@prisma/client";
-import { handleFiltration } from "~/hooks/hooks";
+import { type customDropBoxProp, handleFiltration } from "~/hooks/hooks";
 type BackGroundprops = {
   children: JSX.Element[];
 };
@@ -301,7 +301,7 @@ type InputForTableProps = {
   edit?: boolean;
   title?: string;
   onChange?: (title: string, eventValue: string) => void;
-  onChangeNew?: (e: ChangeEvent<HTMLInputElement>) => void;
+  onChangeNew?: (e: ChangeEvent<HTMLInputElement> | customDropBoxProp) => void;
   name?: string;
   dataForDropBox?: { id: number; fieldName: React.ReactNode }[];
 };
@@ -405,21 +405,21 @@ export const SearchComponent = <
   );
 };
 
-type Option = {
+export type Option<T> = {
   id: number;
-  fieldName: React.ReactNode;
+  fieldName: T;
 };
 
-type CustomSelectProps<T extends Option> = {
+type CustomSelectProps<T extends Option<any>> = {
   fieldName: keyof T;
   data: T[];
-  onChange?: (e: ChangeEvent<HTMLInputElement>) => void;
+  onChange?: (e: customDropBoxProp) => void;
   initialValue?: number;
   name: string;
 };
 
 // Custom Select component
-export const CustomSelect = <T extends Option>({
+export const CustomSelect = <T extends Option<any>>({
   initialValue,
   fieldName,
   data,
@@ -437,7 +437,7 @@ export const CustomSelect = <T extends Option>({
         name: name,
         value: selectedItem?.id ?? -1,
       },
-    } as unknown);
+    } as customDropBoxProp);
   };
   useEffect(() => {
     onChange?.({
@@ -445,7 +445,7 @@ export const CustomSelect = <T extends Option>({
         name: name,
         value: selectedItem?.id ?? -1,
       },
-    } as unknown);
+    } as customDropBoxProp);
   }, [selectedItem]);
   return (
     <Listbox value={selectedItem} onChange={(item: T) => handleChange(item)}>
@@ -504,9 +504,4 @@ export const CustomSelect = <T extends Option>({
       </div>
     </Listbox>
   );
-};
-
-export type Option<T> = {
-  id: number;
-  fieldName: T;
 };
