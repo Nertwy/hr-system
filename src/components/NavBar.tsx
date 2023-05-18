@@ -16,7 +16,7 @@ const NavBar: FunctionComponent<NavBarProps> = ({ backgroundColor }) => {
     }
   };
   return (
-    <div className={`absolute top-0 m-0 w-full font-sans`}>
+    <div className={`absolute top-0 m-0 w-full font-sans no-print`}>
       <div className="top-0">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-around ">
@@ -74,6 +74,11 @@ const NavBar: FunctionComponent<NavBarProps> = ({ backgroundColor }) => {
                 "ResumeTable",
                 "ReviewTable",
               ]}
+            />
+            <DropDown
+              title="Звіти"
+              items={["Відриті вакансії","Звіт з огляду"]}
+              links={["VacancyStatusReport","ReviewReport"]}
             />
             <div className="flex space-x-4">
               <a

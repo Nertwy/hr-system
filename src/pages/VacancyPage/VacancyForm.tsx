@@ -174,6 +174,28 @@ const VacancyForm: FC = () => {
  shadow focus:outline-none"
           />
         </div>
+        <div className="mb-6">
+          <label
+            htmlFor="status"
+            className="mb-2 block font-bold text-white
+"
+          >
+            Cтатус
+          </label>
+          <input
+            required
+            name="status"
+            value={vacancy.status}
+            onChange={(e) => {
+              setVacancy({
+                ...vacancy,
+                status: e.currentTarget.value,
+              });
+            }}
+            className="focus:shadow-outline w-full appearance-none rounded border px-3 py-2 leading-tight text-black
+ shadow focus:outline-none"
+          />
+        </div>
         <SubmitButton />
       </form>
     </div>
