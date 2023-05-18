@@ -2,6 +2,8 @@ import { Combobox, Transition } from "@headlessui/react";
 import { ChevronUpDownIcon, CheckIcon } from "@heroicons/react/20/solid";
 import { Candidate, Resume } from "@prisma/client";
 import { type NextPage } from "next";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/router";
 import { type FC, useEffect, useState, Fragment } from "react";
 import { toast } from "react-toastify";
 import NavBar from "~/components/NavBar";
@@ -13,6 +15,9 @@ import {
 import Spinner from "~/components/Spinner";
 import { api } from "~/utils/api";
 const ResumePage: NextPage = () => {
+  const router = useRouter();
+  const { data: sessionData, status } = useSession();
+
   const [resume, setResume] = useState<Resume>({
     achievements: "",
     candidate_id: -1,
@@ -29,6 +34,10 @@ const ResumePage: NextPage = () => {
     setCandidates(data ?? []);
   }, [isFetched]);
 
+  if (!data && status !== "loading") {
+    void router.push("/api/auth/signin");
+    return null;
+  }
   if (isLoading) {
     return <Spinner />;
   }

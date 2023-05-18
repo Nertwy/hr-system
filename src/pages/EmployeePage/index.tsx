@@ -1,5 +1,7 @@
 import { type Employee } from "@prisma/client";
 import { type NextPage } from "next";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/router";
 import React, { useState, useEffect, type FC } from "react";
 import { toast } from "react-toastify";
 import NavBar from "~/components/NavBar";
@@ -13,6 +15,12 @@ import Spinner from "~/components/Spinner";
 import { api } from "~/utils/api";
 
 const EmployeForm: NextPage = () => {
+  const router = useRouter();
+  const { data, status } = useSession();
+  if (!data && status !== "loading") {
+    void router.push("/api/auth/signin");
+    return null;
+  }
   return (
     <>
       <BackGround>

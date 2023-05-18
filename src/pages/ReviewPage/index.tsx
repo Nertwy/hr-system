@@ -13,7 +13,11 @@ import Spinner from "~/components/Spinner";
 import { Listbox, Transition } from "@headlessui/react";
 import { CheckIcon } from "@heroicons/react/20/solid";
 import { toast } from "react-toastify";
+import { useRouter } from "next/router";
+import { useSession } from "next-auth/react";
 const ReviewPage: NextPage = () => {
+  const router = useRouter();
+  const { data: sessionData, status } = useSession();
   const postReview = api.CRUD.postReview.useMutation();
   const { data, isFetched } = api.CRUD.getAllEmployees.useQuery();
   const [employee, setEmployee] = useState<Employee[]>(data ?? []);
@@ -24,6 +28,10 @@ const ReviewPage: NextPage = () => {
   useEffect(() => {
     setEmployee(data ?? []);
   }, [isFetched]);
+  if (!sessionData && status !== "loading") {
+    void router.push("/api/auth/signin");
+    return null;
+  }
   let names: string[] = [];
   if (isFetched) {
     names = data?.map((value) => value.last_name) ?? [];

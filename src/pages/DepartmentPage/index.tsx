@@ -1,5 +1,7 @@
 import { type Department } from "@prisma/client";
 import { type NextPage } from "next";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/router";
 import { type FormEvent, useState } from "react";
 import { toast } from "react-toastify";
 import NavBar from "~/components/NavBar";
@@ -11,11 +13,18 @@ import {
 import { api } from "~/utils/api";
 
 const DepartmentPage: NextPage = () => {
+  const router = useRouter();
+  const { data, status } = useSession();
+
   const postDepartment = api.CRUD.postDepartment.useMutation();
   const [department, setDepartment] = useState<Department>({
     id: -1,
     name: "",
   });
+  if (!data && status !== "loading") {
+    void router.push("/api/auth/signin");
+    return null;
+  }
   const handleSubmit = (event: FormEvent<HTMLFormElement>): void => {
     event.preventDefault();
     //Send data to server
@@ -65,7 +74,7 @@ const DepartmentPage: NextPage = () => {
             onSubmit={(e) => handleSubmit(e)}
             className="flex w-1/3 flex-col content-evenly space-y-3"
           >
-            <CustomInput 
+            <CustomInput
               name="name"
               text="Назва департаменту"
               onChange={handleChange}
