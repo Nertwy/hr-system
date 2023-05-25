@@ -34,13 +34,6 @@ const ResumePage: NextPage = () => {
     setCandidates(data ?? []);
   }, [isFetched]);
 
-  if (!data && status !== "loading") {
-    void router.push("/api/auth/signin");
-    return null;
-  }
-  if (isLoading) {
-    return <Spinner />;
-  }
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!resume) return;
@@ -65,6 +58,13 @@ const ResumePage: NextPage = () => {
       [name]: value,
     }));
   };
+  if (!data && status !== "loading") {
+    void router.push("/api/auth/signin");
+    return null;
+  }
+  if (isLoading) {
+    return <Spinner />;
+  }
   return (
     <>
       <BackGround>
