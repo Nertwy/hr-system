@@ -149,6 +149,7 @@ const ReviewTable: NextPage = () => {
                         edit={editIndex === elem.id}
                         name="employeeId"
                         type="number"
+                        // defaultValue={data?.find(val=> val.employeeId === elem.employeeId)?.}
                         defaultValue={elem.employeeId.toString()}
                         onChangeNew={(e) =>
                           handleChange(e, setReviews, editIndex)

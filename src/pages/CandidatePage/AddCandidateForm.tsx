@@ -131,7 +131,7 @@ const AddCandidateForm: FC = ({}) => {
             <input
               onChange={phone.onChange}
               type="tel"
-              pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}"
+              pattern="[+]{1}[0-9]{3}[0-9]{2}[0-9]{3}[0-9]{2}[0-9]{2}"
               name="floating_phone"
               id="floating_phone"
               className="peer block w-full appearance-none border-0 border-b-2 border-gray-300 bg-transparent px-0 py-2.5 text-sm text-gray-900 focus:border-red-600 focus:outline-none focus:ring-0 dark:border-gray-600 dark:text-white dark:focus:border-red-500"

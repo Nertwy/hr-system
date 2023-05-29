@@ -84,7 +84,7 @@ const CandidateTable: FC = () => {
     },
     {
       name: "vacancyId",
-      value: "Код вакансії",
+      value: "Назва вакансії",
     },
     {
       name: "first_name",
@@ -157,7 +157,12 @@ const CandidateTable: FC = () => {
                     dataForDropBox={vacancyOptions}
                     name="vacancyId"
                     type="dropbox"
-                    defaultValue={candidate.vacancyId ?? -1}
+                    defaultValue={
+                      vacancyOptions.find(
+                        (val) => val.id === candidate.vacancyId
+                      )?.fieldName ?? ""
+                    }
+                    // defaultValue={candidate.vacancyId ?? -1}
                     edit={editIndex === candidate.id}
                     title="vacancyId"
                     onChangeNew={(e) =>

@@ -99,7 +99,7 @@ const NavBar: FunctionComponent<NavBarProps> = ({ backgroundColor }) => {
                   href="#"
                   className="rounded-full bg-white/5 px-10 py-3 font-semibold text-white no-underline transition hover:bg-white/10"
                 >
-                  Sign out
+                  Вийти з аккаунту
                 </a>
               </div>
             )}

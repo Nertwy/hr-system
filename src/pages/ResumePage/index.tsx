@@ -58,12 +58,13 @@ const ResumePage: NextPage = () => {
       [name]: value,
     }));
   };
-  if (!data && status !== "loading") {
-    void router.push("/api/auth/signin");
-    return null;
-  }
+  
   if (isLoading) {
     return <Spinner />;
+  }
+  if (!sessionData && status !== "loading") {
+    void router.push("/api/auth/signin");
+    return null;
   }
   return (
     <>

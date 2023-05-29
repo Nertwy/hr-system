@@ -167,7 +167,7 @@ const VacancyForm: FC = () => {
             onChange={(e) => {
               setVacancy({
                 ...vacancy,
-                posting_date: new Date(e.currentTarget.value),
+                closing_date: new Date(e.currentTarget.value),
               });
             }}
             className="focus:shadow-outline w-full appearance-none rounded border px-3 py-2 leading-tight text-black

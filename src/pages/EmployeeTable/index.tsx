@@ -246,7 +246,7 @@ const EmployeePage: NextPage = () => {
                         name="department_id"
                         // onChange={handleInputChange}
                         title="department_id"
-                        defaultValue={value.department_id}
+                        defaultValue={departmentOption.find(val=> val.id === value.department_id)?.fieldName ?? ""}
                         edit={editIndex === value.id}
                       />
                     </td>
